@@ -1,5 +1,6 @@
+"use client"
+
 import { Button } from "../custom/Button";
-import SearchIcon from "@mui/icons-material/Search";
 
 export function Hero() {
     return (
@@ -17,7 +18,19 @@ export function Hero() {
                     onSubmit={(e) => e.preventDefault()}
                 >
                     <div className="flex bg-white/90 rounded-lg items-center w-full px-3 py-2 shadow">
-                        <SearchIcon className="w-5 h-5 text-gray-400 mr-2" fontSize="small" />
+                        {/* Inline SVG search icon replaces FaSearch */}
+                        <svg
+                            className="w-5 h-5 text-gray-400 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                        >
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
+                        </svg>
                         <input
                             type="text"
                             placeholder="Search indoor, outdoor or any plant…"
