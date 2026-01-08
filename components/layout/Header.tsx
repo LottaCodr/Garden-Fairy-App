@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -102,8 +104,8 @@ export function Header() {
                     )}
 
                     {/* Cart with badge */}
-                    <Button size="sm" className="relative">
-                        Cart
+                    <Button size="sm" className="relative flex items-center gap-1">
+                        <ShoppingCartIcon fontSize="small" aria-label="Cart" />
                         {cartCount > 0 && (
                             <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium text-accent-foreground">
                                 {cartCount}
@@ -147,8 +149,8 @@ export function Header() {
                                     {!isAuthenticated && (
                                         <Button variant="outline">Sign in</Button>
                                     )}
-                                    <Button>
-                                        Cart
+                                    <Button className="flex items-center gap-2">
+                                        <ShoppingCartIcon fontSize="small" aria-label="Cart" />
                                         {cartCount > 0 && (
                                             <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">
                                                 {cartCount}
