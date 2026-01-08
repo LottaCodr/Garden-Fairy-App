@@ -7,24 +7,24 @@ export function Header() {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
     return (
-        <header className="w-full sticky top-0 z-50 backdrop-blur border-b border-[var(--border)] bg-[var(--background-light)]/90 dark:bg-[var(--background-dark)]/90 transition-colors">
+        <header className="w-full sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 transition-colors">
             <nav className="max-w-full mx-auto px-4 sm:px-8 py-2 flex items-center justify-between gap-4 relative">
                 {/* Logo / Home */}
                 <Link
                     href="/"
-                    className="font-black text-2xl md:text-3xl tracking-tight text-primary hover:text-primary-dark dark:text-primary dark:hover:text-primary-dark transition-colors flex items-center gap-2"
+                    className="font-black text-2xl md:text-3xl tracking-tight text-primary hover:text-primary-foreground dark:text-primary dark:hover:text-primary-foreground transition-colors flex items-center gap-2"
                     style={{ fontFamily: "var(--font-sans)" }}
                     aria-label="The Garden Fairy homepage"
                 >
                     <span className="inline-flex items-center -ml-1">
                         <svg width="26" height="26" viewBox="0 0 32 32" className="mr-1" aria-hidden="true">
-                            <circle cx="16" cy="16" r="6" fill="var(--accent)" />
-                            <ellipse cx="16" cy="6" rx="2.5" ry="6" fill="var(--primary)"/>
-                            <ellipse cx="26" cy="16" rx="6" ry="2.5" fill="var(--primary-dark)" transform="rotate(45 26 16)"/>
-                            <ellipse cx="16" cy="26" rx="2.5" ry="6" fill="var(--primary)"/>
-                            <ellipse cx="6" cy="16" rx="6" ry="2.5" fill="var(--primary-dark)" transform="rotate(-45 6 16)"/>
+                            <circle cx="16" cy="16" r="6" fill="#EDE68A" />
+                            <ellipse cx="16" cy="6" rx="2.5" ry="6" fill="#4ADE80" />
+                            <ellipse cx="26" cy="16" rx="6" ry="2.5" fill="#1E8C57" transform="rotate(45 26 16)" />
+                            <ellipse cx="16" cy="26" rx="2.5" ry="6" fill="#4ADE80" />
+                            <ellipse cx="6" cy="16" rx="6" ry="2.5" fill="#1E8C57" transform="rotate(-45 6 16)" />
                         </svg>
-                        <span className="drop-shadow text-shadow-lg">The Garden Fairy</span>
+                        <span className="drop-shadow">The Garden Fairy</span>
                     </span>
                 </Link>
 
@@ -34,7 +34,7 @@ export function Header() {
                         <li>
                             <Link
                                 href="#"
-                                className="text-[var(--foreground)] font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] hover:bg-[var(--muted)]/80 hover:text-[var(--primary)] transition"
+                                className="text-gray-700 dark:text-gray-100 font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition"
                             >
                                 Shop
                             </Link>
@@ -42,7 +42,7 @@ export function Header() {
                         <li>
                             <Link
                                 href="#"
-                                className="text-[var(--foreground)] font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] hover:bg-[var(--muted)]/80 hover:text-[var(--primary)] transition"
+                                className="text-gray-700 dark:text-gray-100 font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition"
                             >
                                 About
                             </Link>
@@ -50,7 +50,7 @@ export function Header() {
                         <li>
                             <Link
                                 href="#"
-                                className="text-[var(--foreground)] font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent)] hover:bg-[var(--muted)]/80 hover:text-[var(--primary)] transition"
+                                className="text-gray-700 dark:text-gray-100 font-medium px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition"
                             >
                                 Contact
                             </Link>
@@ -64,7 +64,7 @@ export function Header() {
                     <Link
                         href="#"
                         aria-label="View Shopping Cart"
-                        className="relative flex items-center px-3 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--accent-foreground)] font-bold hover:bg-[var(--accent)]/90 transition"
+                        className="relative flex items-center px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary-hover transition"
                         tabIndex={0}
                     >
                         <svg
@@ -73,8 +73,8 @@ export function Header() {
                             height="22"
                             fill="none"
                             viewBox="0 0 24 24"
-                            stroke="var(--accent-foreground)"
-                            className="w-5 h-5 mr-2"
+                            stroke="currentColor"
+                            className="w-5 h-5 mr-2 text-primary-foreground"
                             aria-hidden="true"
                         >
                             <path
@@ -84,11 +84,11 @@ export function Header() {
                                 strokeLinejoin="round"
                                 fill="none"
                             />
-                            <circle cx="9.5" cy="20.5" r="1" fill="var(--accent-foreground)" />
-                            <circle cx="17.5" cy="20.5" r="1" fill="var(--accent-foreground)" />
+                            <circle cx="9.5" cy="20.5" r="1" fill="currentColor" />
+                            <circle cx="17.5" cy="20.5" r="1" fill="currentColor" />
                         </svg>
                         Cart
-                        <span className="ml-2 bg-[var(--accent-foreground)] text-[var(--accent)] px-2 py-0.5 rounded-full text-xs font-bold shadow">
+                        <span className="ml-2 bg-primary-foreground text-primary-foreground px-2 py-0.5 rounded-full text-xs font-bold shadow bg-opacity-80 text-opacity-90">
                             2
                         </span>
                     </Link>
@@ -99,19 +99,19 @@ export function Header() {
                         aria-expanded={mobileNavOpen}
                         aria-controls="mobile-nav-menu"
                         onClick={() => setMobileNavOpen((o) => !o)}
-                        className="flex md:hidden items-center px-2 py-2 rounded-lg hover:bg-[var(--muted)]/50 transition focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                        className="flex md:hidden items-center px-2 py-2 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/10 transition focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                        <svg className="w-7 h-7" fill="none" stroke="var(--foreground)" viewBox="0 0 24 24">
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {mobileNavOpen ? (
                                 <g>
-                                    <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" strokeLinecap="round"/>
-                                    <line x1="6" y1="18" x2="18" y2="6" strokeWidth="2" strokeLinecap="round"/>
+                                    <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="6" y1="18" x2="18" y2="6" strokeWidth="2" strokeLinecap="round" />
                                 </g>
                             ) : (
                                 <g>
-                                    <line x1="4" y1="7" x2="20" y2="7" strokeWidth="2" strokeLinecap="round"/>
-                                    <line x1="4" y1="12" x2="20" y2="12" strokeWidth="2" strokeLinecap="round"/>
-                                    <line x1="4" y1="17" x2="20" y2="17" strokeWidth="2" strokeLinecap="round"/>
+                                    <line x1="4" y1="7" x2="20" y2="7" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="4" y1="12" x2="20" y2="12" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="4" y1="17" x2="20" y2="17" strokeWidth="2" strokeLinecap="round" />
                                 </g>
                             )}
                         </svg>
@@ -126,7 +126,7 @@ export function Header() {
                     onClick={() => setMobileNavOpen(false)}
                 ></div>
                 <aside
-                    className={`fixed top-0 right-0 z-50 h-full w-64 bg-[var(--background-light)] dark:bg-[var(--background-dark)] shadow-xl transform transition-transform duration-200 md:hidden ${mobileNavOpen ? "translate-x-0" : "translate-x-full"}`}
+                    className={`fixed top-0 right-0 z-50 h-full w-64 bg-white dark:bg-black shadow-xl transform transition-transform duration-200 md:hidden ${mobileNavOpen ? "translate-x-0" : "translate-x-full"}`}
                     role="dialog"
                     aria-modal="true"
                     aria-label="Mobile menu"
@@ -135,18 +135,18 @@ export function Header() {
                     <button
                         onClick={() => setMobileNavOpen(false)}
                         aria-label="Close mobile navigation"
-                        className="absolute top-3 right-3 rounded-full p-2 hover:bg-[var(--muted)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] z-10"
+                        className="absolute top-3 right-3 rounded-full p-2 hover:bg-primary/10 dark:hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary z-10"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="var(--foreground)" viewBox="0 0 24 24">
-                            <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" strokeLinecap="round"/>
-                            <line x1="6" y1="18" x2="18" y2="6" strokeWidth="2" strokeLinecap="round"/>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" strokeLinecap="round" />
+                            <line x1="6" y1="18" x2="18" y2="6" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                     </button>
                     <ul className="flex flex-col mt-16 gap-4 px-7 text-lg">
                         <li>
                             <Link
                                 href="#"
-                                className="block w-full text-[var(--foreground)] font-semibold py-2 px-2 rounded-lg hover:bg-[var(--muted)]/70 hover:text-[var(--primary)] transition focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                                className="block w-full text-gray-700 dark:text-gray-100 font-semibold py-2 px-2 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition focus:outline-none focus:ring-2 focus:ring-primary"
                                 onClick={() => setMobileNavOpen(false)}
                             >
                                 Shop
@@ -155,7 +155,7 @@ export function Header() {
                         <li>
                             <Link
                                 href="#"
-                                className="block w-full text-[var(--foreground)] font-semibold py-2 px-2 rounded-lg hover:bg-[var(--muted)]/70 hover:text-[var(--primary)] transition focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                                className="block w-full text-gray-700 dark:text-gray-100 font-semibold py-2 px-2 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition focus:outline-none focus:ring-2 focus:ring-primary"
                                 onClick={() => setMobileNavOpen(false)}
                             >
                                 About
@@ -164,7 +164,7 @@ export function Header() {
                         <li>
                             <Link
                                 href="#"
-                                className="block w-full text-[var(--foreground)] font-semibold py-2 px-2 rounded-lg hover:bg-[var(--muted)]/70 hover:text-[var(--primary)] transition focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                                className="block w-full text-gray-700 dark:text-gray-100 font-semibold py-2 px-2 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition focus:outline-none focus:ring-2 focus:ring-primary"
                                 onClick={() => setMobileNavOpen(false)}
                             >
                                 Contact

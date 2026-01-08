@@ -1,88 +1,90 @@
-/* Garden Fairy Tailwind Theme */
+/* Garden Fairy Modern Nature Theme */
 @import "tailwindcss";
 @import "tw-animate-css";
 
 /* 
-  Custom Garden Fairy CSS Variables Theme
-  - Colors inspired by nature, greenery, flowers, and freshness
-  - Green, light green, cream, and accent pink highlights
+  Modern Garden Fairy CSS Variables Theme
+  - Soft, fresh, and clean with a more neutral, minimal, and natural base
+  - Creamy backgrounds, crisp contrast green, elegant yellow for highlights
+  - Consistent card/panel and input styles
 */
 
 :root {
   /* Radius */
   --radius: 0.75rem;
 
-  /* Main brand greens */
-  --background-light: #f5fbe6;
-  --background-dark: #2a3d2d;
+  /* Brand colors */
+  --background-light: #f8faf3;
+  --background-dark: #23281c;
 
-  --primary: #48b478;       /* Garden green */
-  --primary-dark: #36895a;
-  --primary-foreground: #fff;
-  --secondary: #eedbb6;     /* Soft cream */
-  --secondary-foreground: #4b3e2b;
+  --primary: #b6e072;               /* Leafy Green */
+  --primary-hover: #8eca3b;
+  --primary-foreground: #213015;
 
-  /* Accent colors */
-  --accent: #fe7fa6;        /* Flower pink */
-  --accent-foreground: #fff;
+  --secondary: #fffbe8;             /* Soft cream */
+  --secondary-foreground: #60693c;
+
+  --accent: #fff475;                /* Garden highlight yellow */
+  --accent-dark: #ffe644;
+  --accent-foreground: #746d07;
 
   /* Muted/Light */
-  --muted: #e3f6de;
-  --muted-foreground: #557563;
+  --muted: #e5eee2;
+  --muted-foreground: #708d52;
 
   /* Card/panel */
-  --card: #fff;
-  --card-foreground: #22321d;
+  --card: #fffef7;
+  --card-foreground: #204025;
 
-  /* Border/input */
-  --border: #dedede;
-  --input: #e0eee0;
+  /* Borders/inputs */
+  --border: #e3e9dc;
+  --input: #eef5eb;
 
   /* Misc */
-  --destructive: #d44848;
-  --ring: #bee0be;
+  --destructive: #e96a6a;
+  --ring: #cff6b6;
 
-  /* Color palette for charts/visuals */
-  --garden-leaf: #34a853;
-  --garden-rose: #fb8daa;
-  --garden-sky: #a8e1e8;
-  --garden-soil: #ba9679;
-  --garden-sun: #fff7d6;
+  /* Charts/visuals palette */
+  --leaf-green: #b3dd7b;
+  --soil-brown: #a17849;
+  --rose-pink: #faaccb;
+  --sun-yellow: #fff295;
+  --sky-blue: #c3e9ef;
 
-  /* Font families */
+  /* Font family */
   --font-sans: var(--font-poppins, 'Poppins', Arial, sans-serif);
 
-  /* Default bg values for tailwind utilities (light/dark support) */
+  /* Tailwind utility defaults */
   --background: var(--background-light);
-  --foreground: #28472c;
+  --foreground: #2e4736;
 }
 
 .dark {
   --background: var(--background-dark);
-  --foreground: #f5fbe6;
+  --foreground: #f8faf3;
 
-  --card: #345243;
-  --card-foreground: #f5fbe6;
+  --card: #2f3a29;
+  --card-foreground: #f8faf3;
 
-  --primary: #8ec07c;
-  --primary-dark: #365c43;
-  --primary-foreground: #fff;
+  --primary: #72c288;
+  --primary-hover: #558c66;
+  --primary-foreground: #f8faf3;
 
-  --secondary: #434d3a;
-  --secondary-foreground: #eedbb6;
+  --secondary: #292f21;
+  --secondary-foreground: #f8faf3;
 
-  --muted: #334b33;
-  --muted-foreground: #bdd7b1;
+  --muted: #2c3323;
+  --muted-foreground: #afd99e;
 
-  --border: #456242;
-  --input: #3e5b41;
+  --border: #3c4632;
+  --input: #314436;
 
-  --accent: #e4a3be;
-  --accent-foreground: #2a3d2d;
+  --accent: #d6ce74;
+  --accent-dark: #bcb53d;
+  --accent-foreground: #23281c;
 
-  --ring: #609168;
-
-  --destructive: #ff7878;
+  --ring: #8eca3b;
+  --destructive: #ffa5a5;
 }
 
 /* Make tailwind recognize these CSS vars */
@@ -98,18 +100,23 @@
   .bg-background-light { background-color: var(--background-light); }
   .bg-background-dark { background-color: var(--background-dark); }
   .bg-primary { background-color: var(--primary); }
+  .bg-primary-hover { background-color: var(--primary-hover); }
   .bg-secondary { background-color: var(--secondary); }
   .bg-accent { background-color: var(--accent); }
+  .bg-accent-dark { background-color: var(--accent-dark); }
   .bg-muted { background-color: var(--muted); }
+  .bg-card { background-color: var(--card); }
   .text-primary { color: var(--primary); }
   .text-secondary { color: var(--secondary); }
   .text-accent { color: var(--accent); }
   .text-muted { color: var(--muted-foreground); }
+  .text-accent-dark { color: var(--accent-dark); }
+  .text-primary-foreground { color: var(--primary-foreground); }
+  .text-accent-foreground { color: var(--accent-foreground); }
   .border { border-color: var(--border); }
   .ring { box-shadow: 0 0 0 2px var(--ring); }
 }
 
-/* Utility variables for rounded corners with tailwind */
 :root {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
