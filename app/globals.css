@@ -1,131 +1,122 @@
-/* Garden Fairy Modern Nature Theme */
+/* Garden Fairy – Senior Design System Theme */
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* 
-  Modern Garden Fairy CSS Variables Theme
-  - Soft, fresh, and clean with a more neutral, minimal, and natural base
-  - Creamy backgrounds, crisp contrast green, elegant yellow for highlights
-  - Consistent card/panel and input styles
-*/
+/* ----------------------------------------
+   Core Design Tokens (shadcn-compatible)
+---------------------------------------- */
 
 :root {
   /* Radius */
   --radius: 0.75rem;
 
-  /* Brand colors */
-  --background-light: #f8faf3;
-  --background-dark: #23281c;
+  /* Neutral foundation */
+  --background: #fbfdf8;
+  /* Warm off-white */
+  --foreground: #1f2933;
+  /* Neutral charcoal */
 
-  --primary: #b6e072;               /* Leafy Green */
-  --primary-hover: #8eca3b;
-  --primary-foreground: #213015;
+  --card: #ffffff;
+  --card-foreground: #1f2933;
 
-  --secondary: #fffbe8;             /* Soft cream */
-  --secondary-foreground: #60693c;
+  --popover: #ffffff;
+  --popover-foreground: #1f2933;
 
-  --accent: #fff475;                /* Garden highlight yellow */
-  --accent-dark: #ffe644;
-  --accent-foreground: #746d07;
+  /* Brand – Botanical Green */
+  --primary: #5fa36a;
+  /* Mature leaf green */
+  --primary-hover: #4f8e5a;
+  --primary-foreground: #ffffff;
 
-  /* Muted/Light */
-  --muted: #e5eee2;
-  --muted-foreground: #708d52;
+  /* Secondary – Soft botanical neutral */
+  --secondary: #f1f5ef;
+  --secondary-foreground: #334155;
 
-  /* Card/panel */
-  --card: #fffef7;
-  --card-foreground: #204025;
+  /* Muted UI */
+  --muted: #eef2ec;
+  --muted-foreground: #64748b;
 
-  /* Borders/inputs */
-  --border: #e3e9dc;
-  --input: #eef5eb;
+  /* Accent – Sunlight yellow (sparingly) */
+  --accent: #f5e37a;
+  --accent-foreground: #5c4b00;
 
-  /* Misc */
-  --destructive: #e96a6a;
-  --ring: #cff6b6;
+  /* Borders & inputs */
+  --border: #e3e8e1;
+  --input: #edf2ec;
+  --ring: #9bd3a8;
 
-  /* Charts/visuals palette */
-  --leaf-green: #b3dd7b;
-  --soil-brown: #a17849;
-  --rose-pink: #faaccb;
-  --sun-yellow: #fff295;
-  --sky-blue: #c3e9ef;
+  /* States */
+  --destructive: #e54848;
+  --destructive-foreground: #ffffff;
 
-  /* Font family */
-  --font-sans: var(--font-poppins, 'Poppins', Arial, sans-serif);
-
-  /* Tailwind utility defaults */
-  --background: var(--background-light);
-  --foreground: #2e4736;
+  /* Font */
+  --font-sans: var(--font-poppins, system-ui, sans-serif);
 }
+
+/* ----------------------------------------
+   Dark Mode
+---------------------------------------- */
 
 .dark {
-  --background: var(--background-dark);
-  --foreground: #f8faf3;
+  --background: #0f1411;
+  --foreground: #ecf2ec;
 
-  --card: #2f3a29;
-  --card-foreground: #f8faf3;
+  --card: #161d18;
+  --card-foreground: #ecf2ec;
 
-  --primary: #72c288;
-  --primary-hover: #558c66;
-  --primary-foreground: #f8faf3;
+  --popover: #161d18;
+  --popover-foreground: #ecf2ec;
 
-  --secondary: #292f21;
-  --secondary-foreground: #f8faf3;
+  --primary: #6fcf97;
+  --primary-hover: #58b47f;
+  --primary-foreground: #0f1411;
 
-  --muted: #2c3323;
-  --muted-foreground: #afd99e;
+  --secondary: #1d2620;
+  --secondary-foreground: #d1e7d8;
 
-  --border: #3c4632;
-  --input: #314436;
+  --muted: #1b241e;
+  --muted-foreground: #9fb6a7;
 
-  --accent: #d6ce74;
-  --accent-dark: #bcb53d;
-  --accent-foreground: #23281c;
+  --accent: #e4d46b;
+  --accent-foreground: #1f2933;
 
-  --ring: #8eca3b;
-  --destructive: #ffa5a5;
+  --border: #253028;
+  --input: #1f2a23;
+  --ring: #6fcf97;
+
+  --destructive: #ff6b6b;
+  --destructive-foreground: #0f1411;
 }
 
-/* Make tailwind recognize these CSS vars */
+/* ----------------------------------------
+   Base Layer
+---------------------------------------- */
+
 @layer base {
   html {
     font-family: var(--font-sans);
     background-color: var(--background);
     color: var(--foreground);
   }
+
   body {
-    @apply bg-[var(--background)] text-[var(--foreground)];
+    @apply bg-background text-foreground;
   }
-  .bg-background-light { background-color: var(--background-light); }
-  .bg-background-dark { background-color: var(--background-dark); }
-  .bg-primary { background-color: var(--primary); }
-  .bg-primary-hover { background-color: var(--primary-hover); }
-  .bg-secondary { background-color: var(--secondary); }
-  .bg-accent { background-color: var(--accent); }
-  .bg-accent-dark { background-color: var(--accent-dark); }
-  .bg-muted { background-color: var(--muted); }
-  .bg-card { background-color: var(--card); }
-  .text-primary { color: var(--primary); }
-  .text-secondary { color: var(--secondary); }
-  .text-accent { color: var(--accent); }
-  .text-muted { color: var(--muted-foreground); }
-  .text-accent-dark { color: var(--accent-dark); }
-  .text-primary-foreground { color: var(--primary-foreground); }
-  .text-accent-foreground { color: var(--accent-foreground); }
-  .border { border-color: var(--border); }
-  .ring { box-shadow: 0 0 0 2px var(--ring); }
+
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
 }
+
+/* ----------------------------------------
+   Radius Scale
+---------------------------------------- */
 
 :root {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-}
-
-* {
-  border-color: var(--border);
-  outline-color: var(--ring);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 }
