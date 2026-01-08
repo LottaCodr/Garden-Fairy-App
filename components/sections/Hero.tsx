@@ -1,55 +1,89 @@
-"use client"
+"use client";
 
 import { Button } from "../custom/Button";
 
 export function Hero() {
     return (
         <section
-            className="relative min-h-[320px] md:min-h-[400px] lg:min-h-[460px] bg-cover bg-center flex items-center justify-center"
-            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEqkXZ-5CD-H-6ixzT8piHm1-xAxeMJoCkiIFWOlDSmkp3URwZ6dwVNSVBVZKBGnwg9BMfyPi5b3YbEnZN7_F_KhWwrhElqbPEV442UZMkQJPIE0BQHoSVUzv8CZhdRX39Zk1E2udu6gtExKDk2Whmw_25LQGWaMs_4Jm-ZEuKL6Xdl_ekMW4BvjLAFNOVVWULrXkB00dIQvcpYbPXkJ5QXvSW3ahPcm4jPox4oZu1ezzK3U4wADbn_dszLib0bMyKMHu2fM1rBPk'')" }}
+            aria-label="Hero section"
+            className="relative isolate flex min-h-[360px] items-center justify-center bg-cover bg-center md:min-h-[440px] lg:min-h-[520px]"
+            style={{
+                backgroundImage:
+                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEqkXZ-5CD-H-6ixzT8piHm1-xAxeMJoCkiIFWOlDSmkp3URwZ6dwVNSVBVZKBGnwg9BMfyPi5b3YbEnZN7_F_KhWwrhElqbPEV442UZMkQJPIE0BQHoSVUzv8CZhdRX39Zk1E2udu6gtExKDk2Whmw_25LQGWaMs_4Jm-ZEuKL6Xdl_ekMW4BvjLAFNOVVWULrXkB00dIQvcpYbPXkJ5QXvSW3ahPcm4jPox4oZu1ezzK3U4wADbn_dszLib0bMyKMHu2fM1rBPk')",
+            }}
         >
-            <div className="absolute inset-0 bg-black/40 z-0" aria-hidden="true" />
-            <div className="relative z-10 flex flex-col items-center w-full px-4 pt-10 pb-10">
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-lg mb-4">
-                    Fresh Plants Delivered Nationwide.
+            {/* Overlay */}
+            <div
+                className="absolute inset-0 -z-10 bg-black/50"
+                aria-hidden="true"
+            />
+
+            {/* Content */}
+            <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 py-14 text-center">
+                {/* Heading */}
+                <h1 className="mb-4 max-w-3xl text-balance text-3xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+                    Fresh Plants Delivered Nationwide
                 </h1>
+
+                {/* Subtext (optional but senior-level UX) */}
+                <p className="mb-8 max-w-xl text-sm text-white/90 md:text-base">
+                    Curated indoor and outdoor plants, delivered straight to your door.
+                </p>
+
+                {/* Search */}
                 <form
-                    className="w-full max-w-md flex items-center gap-2 mt-2"
                     onSubmit={(e) => e.preventDefault()}
+                    className="mb-8 flex w-full max-w-md items-center gap-2"
+                    role="search"
                 >
-                    <div className="flex bg-white/90 rounded-lg items-center w-full px-3 py-2 shadow">
-                        {/* Inline SVG search icon replaces FaSearch */}
-                        <svg
-                            className="w-5 h-5 text-gray-400 mr-2"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                        >
-                            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
-                            <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
-                        </svg>
+                    <div className="flex w-full items-center gap-2 rounded-lg bg-white/95 px-3 py-2 shadow-sm backdrop-blur">
+                        <SearchIcon />
                         <input
-                            type="text"
-                            placeholder="Search indoor, outdoor or any plant…"
-                            className="bg-transparent focus:outline-none text-gray-800 w-full"
+                            type="search"
+                            placeholder="Search indoor, outdoor or any plant"
+                            className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
                         />
                     </div>
-                    <Button type="submit" className="ml-2 px-5 py-2">
+
+                    <Button type="submit" className="px-5 py-2">
                         Search
                     </Button>
                 </form>
-                <div className="flex gap-4 mt-6">
-                    <Button variant="primary" className="shadow">
+
+                {/* CTA Buttons */}
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                    <Button variant="primary" className="shadow-md">
                         Shop Now
                     </Button>
-                    <Button variant="ghost" className="text-white border-white border shadow">
+
+                    <Button
+                        variant="ghost"
+                        className="border border-white text-white hover:bg-white/10"
+                    >
                         Explore Collections
                     </Button>
                 </div>
             </div>
         </section>
+    );
+}
+
+/* ----------------------------- */
+/* Icon (kept isolated + clean)  */
+/* ----------------------------- */
+
+function SearchIcon() {
+    return (
+        <svg
+            aria-hidden="true"
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+        >
+            <circle cx="11" cy="11" r="7" />
+            <line x1="16.5" y1="16.5" x2="21" y2="21" />
+        </svg>
     );
 }
