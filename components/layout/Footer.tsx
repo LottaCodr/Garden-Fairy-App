@@ -2,99 +2,97 @@
 
 import Link from "next/link";
 import { Twitter, Instagram, Facebook } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
+
+    const fadeUp = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+    };
+
     return (
-        <footer className="bg-foreground text-background py-12">
+        <motion.footer
+            className="bg-foreground text-background py-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+        >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Top: Navigation + Social Links */}
                 <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 mb-8">
-                    {/* Navigation */}
-                    <div>
+                    {/* Shop Links */}
+                    <motion.div variants={fadeUp}>
                         <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Shop
                         </h4>
                         <ul className="space-y-2 text-sm">
-                            <li>
-                                <Link href="/shop" className="hover:text-primary transition">
-                                    Plants
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/collections" className="hover:text-primary transition">
-                                    Collections
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/about" className="hover:text-primary transition">
-                                    About Us
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/contact" className="hover:text-primary transition">
-                                    Contact
-                                </Link>
-                            </li>
+                            {["Plants", "Collections", "About Us", "Contact"].map((link) => (
+                                <li key={link}>
+                                    <Link
+                                        href={`/${link.toLowerCase().replace(/ /g, "-")}`}
+                                        className="hover:text-primary transition"
+                                    >
+                                        {link}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
-                    </div>
+                    </motion.div>
 
-                    {/* Customer Service */}
-                    <div>
+                    {/* Support */}
+                    <motion.div variants={fadeUp} transition={{ delay: 0.1 }}>
                         <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Support
                         </h4>
                         <ul className="space-y-2 text-sm">
-                            <li>
-                                <Link href="/faq" className="hover:text-primary transition">
-                                    FAQ
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/shipping" className="hover:text-primary transition">
-                                    Shipping & Returns
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/privacy" className="hover:text-primary transition">
-                                    Privacy Policy
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/terms" className="hover:text-primary transition">
-                                    Terms of Service
-                                </Link>
-                            </li>
+                            {["FAQ", "Shipping & Returns", "Privacy Policy", "Terms of Service"].map(
+                                (link) => (
+                                    <li key={link}>
+                                        <Link
+                                            href={`/${link.toLowerCase().replace(/ /g, "-")}`}
+                                            className="hover:text-primary transition"
+                                        >
+                                            {link}
+                                        </Link>
+                                    </li>
+                                )
+                            )}
                         </ul>
-                    </div>
+                    </motion.div>
 
-                    {/* Social / Follow */}
-                    <div>
+                    {/* Social */}
+                    <motion.div variants={fadeUp} transition={{ delay: 0.2 }}>
                         <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Follow Us
                         </h4>
                         <div className="flex gap-4">
-                            <Link href="#" className="hover:text-primary transition" aria-label="Twitter">
-                                <Twitter className="h-5 w-5" />
-                            </Link>
-                            <Link href="#" className="hover:text-primary transition" aria-label="Instagram">
-                                <Instagram className="h-5 w-5" />
-                            </Link>
-                            <Link href="#" className="hover:text-primary transition" aria-label="Facebook">
-                                <Facebook className="h-5 w-5" />
-                            </Link>
+                            {[{ Icon: Twitter, label: "Twitter" }, { Icon: Instagram, label: "Instagram" }, { Icon: Facebook, label: "Facebook" }].map(
+                                ({ Icon, label }) => (
+                                    <Link
+                                        key={label}
+                                        href="#"
+                                        className="hover:text-primary transition"
+                                        aria-label={label}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                    </Link>
+                                )
+                            )}
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Newsletter / Info */}
-                    <div>
+                    {/* Newsletter */}
+                    <motion.div variants={fadeUp} transition={{ delay: 0.3 }}>
                         <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Newsletter
                         </h4>
                         <p className="text-sm text-background/70">
                             Subscribe for updates on new arrivals and promotions.
                         </p>
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex flex-col sm:flex-row gap-2">
                             <input
                                 type="email"
                                 placeholder="Your email"
@@ -104,14 +102,18 @@ export function Footer() {
                                 Subscribe
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                {/* Bottom: Copyright */}
-                <div className="border-t border-background/50 pt-6 text-center text-xs text-background/60">
+                {/* Bottom */}
+                <motion.div
+                    className="border-t border-background/50 pt-6 text-center text-xs text-background/60"
+                    variants={fadeUp}
+                    transition={{ delay: 0.4 }}
+                >
                     © {currentYear} The Garden Fairy. All rights reserved.
-                </div>
+                </motion.div>
             </div>
-        </footer>
+        </motion.footer>
     );
 }
