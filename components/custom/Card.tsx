@@ -1,12 +1,23 @@
-interface CardProps {
-    children: React.ReactNode;
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> { }
+
+export function Card({ className, ...props }: CardProps) {
+    return (
+        <div
+            className={cn(
+                "rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg",
+                className
+            )}
+            {...props}
+        />
+    );
 }
 
-
-export function Card({ children }: CardProps) {
-    return (
-        <div className="bg-white dark:bg-background-dark/50 rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition">
-            {children}
-        </div>
-    );
+export function CardContent({
+    className,
+    ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+    return <div className={cn("p-4", className)} {...props} />;
 }

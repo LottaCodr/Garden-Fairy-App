@@ -6,18 +6,20 @@ export type Product = {
     image: string;
     tags: string[];
     isPremium: boolean;
+    price: number;
 };
 
 export const products: Product[] = [
     {
         id: "p1",
-        name: "Smart Wardrobe Stylist",
-        categoryId: "fashion",
+        name: "Monstera Deliciosa",
+        categoryId: "indoor",
         description:
-            "Upload photos of your wardrobe and get AI-generated outfit combinations tailored to your lifestyle, weather, and culture.",
-        image: "/images/products/wardrobe-ai.png",
-        tags: ["fashion", "ai", "wardrobe"],
+            "A stunning tropical plant popular for its split leaves and air-purifying abilities. Thrives in bright, indirect light.",
+        image: "/images/products/monstera.png",
+        tags: ["indoor", "tropical", "air-purifying"],
         isPremium: false,
+        price: 7500,
     },
     {
         id: "p2",
@@ -28,6 +30,7 @@ export const products: Product[] = [
         image: "/images/products/home-space.png",
         tags: ["home", "interior", "design"],
         isPremium: true,
+        price: 11900,
     },
     {
         id: "p3",
@@ -38,6 +41,7 @@ export const products: Product[] = [
         image: "/images/products/workspace.png",
         tags: ["workspace", "productivity", "design"],
         isPremium: true,
+        price: 9500,
     },
     {
         id: "p4",
@@ -48,5 +52,6 @@ export const products: Product[] = [
         image: "/images/products/garden.png",
         tags: ["garden", "outdoor", "planning"],
         isPremium: false,
+        price: 8500,
     },
 ];

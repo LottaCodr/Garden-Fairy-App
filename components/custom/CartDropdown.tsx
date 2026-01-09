@@ -53,7 +53,7 @@ export function CartDropdown() {
                                 <div className="flex-1">
                                     <p className="text-sm leading-tight">{item.name}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        ₦{item.price.toLocaleString()} × {item.quantity}
+                                        ₦{item.price} × {item.quantity}
                                     </p>
                                 </div>
                             </div>
