@@ -17,19 +17,23 @@ interface Product {
 
 export function ProductCard({ product }: { product: Product }) {
     const addItem = useCartStore((s) => s.addItem);
-    const openQuickView = useProductUI((s)=> s.openQuickView)
-    
+    const openQuickView = useProductUI((s) => s.openQuickView);
 
     return (
-        <Card  className="overflow-hidden transition-shadow hover:shadow-lg">
-            {/* Image */}
-            <div className="relative h-56 w-full overflow-hidden" onClick={() => openQuickView(product.id)}>
+        <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col h-full">
+            {/* Full Image */}
+            <div
+                className="relative w-full flex-1 cursor-pointer min-h-[224px]" // h-56 = 224px
+                style={{ minHeight: 224 }}
+                onClick={() => openQuickView(product.id)}
+            >
                 <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-300 hover:scale-105"
+                    sizes="100vw"
+                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                    priority={true}
                 />
             </div>
 
@@ -38,7 +42,6 @@ export function ProductCard({ product }: { product: Product }) {
                 <h3 className="text-sm font-semibold leading-tight">
                     {product.name}
                 </h3>
-
                 <p className="text-xs text-muted-foreground line-clamp-2">
                     {product.description}
                 </p>
@@ -46,14 +49,13 @@ export function ProductCard({ product }: { product: Product }) {
 
             {/* Footer */}
             <CardFooter className="flex items-center justify-between">
-                <span className="text-sm font-bold">
+                <span className="text-lg font-bold">
                     ₦{product.price}
                 </span>
 
                 <Button
                     size="sm"
-                    onClick={(e) =>
-                        // e.stopPropagation();
+                    onClick={() =>
                         addItem({
                             id: product.id,
                             name: product.name,

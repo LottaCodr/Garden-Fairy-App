@@ -16,7 +16,7 @@ export const products: Product[] = [
         categoryId: "indoor",
         description:
             "A stunning tropical plant popular for its split leaves and air-purifying abilities. Thrives in bright, indirect light.",
-        image: "/images/products/monstera.png",
+        image: "/images/plants/5.jpg",
         tags: ["indoor", "tropical", "air-purifying"],
         isPremium: false,
         price: 7500,
@@ -27,7 +27,7 @@ export const products: Product[] = [
         categoryId: "interior",
         description:
             "Transform your home or office using what you already own. Get layout and decor recommendations powered by AI.",
-        image: "/images/products/home-space.png",
+        image: "/images/plants/2.jpg",
         tags: ["home", "interior", "design"],
         isPremium: true,
         price: 11900,
@@ -38,7 +38,7 @@ export const products: Product[] = [
         categoryId: "workspace",
         description:
             "Optimize your desk and workspace for productivity, comfort, and aesthetics based on your profession.",
-        image: "/images/products/workspace.png",
+        image: "/images/plants/3.jpg",
         tags: ["workspace", "productivity", "design"],
         isPremium: true,
         price: 9500,
@@ -49,7 +49,7 @@ export const products: Product[] = [
         categoryId: "garden",
         description:
             "Design and reorganize your garden or outdoor space using AI suggestions adapted to climate and space.",
-        image: "/images/products/garden.png",
+        image: "/images/plants/4.jpg",
         tags: ["garden", "outdoor", "planning"],
         isPremium: false,
         price: 8500,
