@@ -43,7 +43,15 @@ export function CartDropdown({ count }: { count: number }) {
 
             <DropdownMenuContent
                 align="end"
-                className="w-72 bg-card border-border p-4"
+                className="
+    w-72
+    bg-card/95
+    backdrop-blur-md
+    border border-border
+    shadow-xl
+    rounded-lg
+    p-4
+  "
             >
                 <p className="mb-3 text-sm font-medium">Your cart</p>
 
