@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Twitter, Instagram, Facebook } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
     return (
-        <footer className="bg-background border-t border-border py-12 text-foreground">
+        <footer className="bg-foreground text-background py-12">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Top: Navigation + Social Links */}
                 <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 mb-8">
                     {/* Navigation */}
                     <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground mb-4">
+                        <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Shop
                         </h4>
                         <ul className="space-y-2 text-sm">
@@ -42,7 +41,7 @@ export function Footer() {
 
                     {/* Customer Service */}
                     <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground mb-4">
+                        <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Support
                         </h4>
                         <ul className="space-y-2 text-sm">
@@ -71,7 +70,7 @@ export function Footer() {
 
                     {/* Social / Follow */}
                     <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground mb-4">
+                        <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Follow Us
                         </h4>
                         <div className="flex gap-4">
@@ -89,18 +88,17 @@ export function Footer() {
 
                     {/* Newsletter / Info */}
                     <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground mb-4">
+                        <h4 className="text-sm font-semibold text-background/70 mb-4">
                             Newsletter
                         </h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-background/70">
                             Subscribe for updates on new arrivals and promotions.
                         </p>
-                        {/* Example input/button for email */}
                         <div className="mt-3 flex gap-2">
                             <input
                                 type="email"
                                 placeholder="Your email"
-                                className="flex-1 rounded-md border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="flex-1 rounded-md border border-background/50 bg-foreground/10 px-3 py-2 text-sm text-background placeholder:text-background/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                             <button className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:brightness-90 transition">
                                 Subscribe
@@ -110,7 +108,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom: Copyright */}
-                <div className="border-t border-border pt-6 text-center text-xs text-muted-foreground">
+                <div className="border-t border-background/50 pt-6 text-center text-xs text-background/60">
                     © {currentYear} The Garden Fairy. All rights reserved.
                 </div>
             </div>
