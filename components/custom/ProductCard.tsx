@@ -1,65 +1,65 @@
-"use client";
+"use client"
 
-import Image from "next/image";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart.store";
+import Image from "next/image"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { useProductUI } from "@/store/useProductUI"
 
 interface Product {
-    id: string;
-    name: string;
-    description: string;
-    image: string;
-    price: number;
+    id: string
+    name: string
+    price: number
+    image: string
+    isOnSale?: boolean
+    isFeatured?: boolean
 }
 
 export function ProductCard({ product }: { product: Product }) {
-    const addItem = useCartStore((s) => s.addItem);
+    const { openQuickView } = useProductUI()
 
     return (
-        <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-            {/* Image */}
-            <div className="relative h-56 w-full overflow-hidden">
-                <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-300 hover:scale-105"
-                />
+        <Card className="group relative overflow-hidden transition hover:shadow-lg">
+            {/* Badges */}
+            <div className="absolute left-3 top-3 z-10 flex gap-2">
+                {product.isFeatured && (
+                    <Badge variant="secondary">Featured</Badge>
+                )}
+                {product.isOnSale && (
+                    <Badge className="bg-red-500 text-white">Sale</Badge>
+                )}
             </div>
 
-            {/* Content */}
-            <CardContent className="space-y-2 pt-4">
-                <h3 className="text-sm font-semibold leading-tight">
-                    {product.name}
-                </h3>
+            {/* Image */}
+            <CardContent className="p-0">
+                <div className="relative h-64 w-full overflow-hidden">
+                    <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                </div>
 
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                    {product.description}
-                </p>
+                <div className="p-4 space-y-1">
+                    <h3 className="font-medium">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                        ₦{product.price.toLocaleString()}
+                    </p>
+                </div>
             </CardContent>
 
-            {/* Footer */}
-            <CardFooter className="flex items-center justify-between">
-                <span className="text-sm font-bold">
-                    ₦{product.price}
-                </span>
-
+            {/* Actions */}
+            <CardFooter className="flex gap-2">
                 <Button
-                    size="sm"
-                    onClick={() =>
-                        addItem({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                        })
-                    }
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => openQuickView(product.id)}
                 >
-                    Add to cart
+                    Quick View
                 </Button>
+                <Button className="w-full">Add to Cart</Button>
             </CardFooter>
         </Card>
-    );
+    )
 }
