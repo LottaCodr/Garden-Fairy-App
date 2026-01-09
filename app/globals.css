@@ -118,6 +118,18 @@
   --destructive-foreground: #0f1411;
 }
 
+/* Hide horizontal scrollbar but allow scroll */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  /* IE & Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
 /* ----------------------------------------
    Base Layer
 ---------------------------------------- */
