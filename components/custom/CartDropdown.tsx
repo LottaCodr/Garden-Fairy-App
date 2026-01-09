@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,23 +10,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/* Mock cart */
-const cartItems = [
-    {
-        id: "1",
-        name: "Monstera Deliciosa",
-        price: 12000,
-        image: "/plants/monstera.jpg",
-    },
-    {
-        id: "2",
-        name: "Snake Plant",
-        price: 8000,
-        image: "/plants/snake.jpg",
-    },
-];
+import { ShoppingCart } from "lucide-react";
+import { useCartStore } from "@/store/cart.store";
 
-export function CartDropdown({ count }: { count: number }) {
+export function CartDropdown() {
+    const { items, count } = useCartStore();
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -43,25 +31,17 @@ export function CartDropdown({ count }: { count: number }) {
 
             <DropdownMenuContent
                 align="end"
-                className="
-    w-72
-    bg-card/95
-    backdrop-blur-md
-    border border-border
-    shadow-xl
-    rounded-lg
-    p-4
-  "
+                className="w-72 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-lg p-4"
             >
                 <p className="mb-3 text-sm font-medium">Your cart</p>
 
-                {cartItems.length === 0 ? (
+                {items.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                         Your cart is empty
                     </p>
                 ) : (
                     <div className="flex flex-col gap-3">
-                        {cartItems.map((item) => (
+                        {items.map((item) => (
                             <div key={item.id} className="flex items-center gap-3">
                                 <Image
                                     src={item.image}
@@ -73,7 +53,7 @@ export function CartDropdown({ count }: { count: number }) {
                                 <div className="flex-1">
                                     <p className="text-sm leading-tight">{item.name}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        ₦{item.price.toLocaleString()}
+                                        ₦{item.price.toLocaleString()} × {item.quantity}
                                     </p>
                                 </div>
                             </div>

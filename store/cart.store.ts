@@ -17,7 +17,7 @@ type CartState = {
     clearCart: () => void;
 };
 
-export const useCartStrore = create<CartState>((set, get) => ({
+export const useCartStore = create<CartState>((set, get) => ({
     items: [],
     count: 0,
 
