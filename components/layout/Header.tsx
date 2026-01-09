@@ -6,14 +6,9 @@ import { Menu } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-import {
-    Sheet,
-    SheetContent,
-    SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useScrollHeader } from "@/lib/hooks/useScrollheader";
 import { CartDropdown } from "../custom/CartDropdown";
-
 
 /* ------------------------------------------------------------------
    MOCK AUTH
@@ -48,14 +43,27 @@ export function Header() {
     const isActiveRoute = (href: string) =>
         pathname === href || pathname.startsWith(href + "/");
 
+    const headerVariants = {
+        hidden: { y: -50, opacity: 0 },
+        visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120 } },
+    };
+
+    const navVariants = {
+        compact: { height: 48, transition: { type: "spring", stiffness: 200 } },
+        expanded: { height: 64, transition: { type: "spring", stiffness: 200 } },
+    };
+
     return (
-        <header
-            className={`sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur transition-shadow ${compact ? "shadow-sm" : ""
-                }`}
+        <motion.header
+            className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur"
+            initial="hidden"
+            animate="visible"
+            variants={headerVariants as any}
         >
-            <nav
-                className={`mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 transition-all duration-300 ${compact ? "h-12" : "h-16"
-                    }`}
+            <motion.nav
+                className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 transition-all"
+                animate={compact ? "compact" : "expanded"}
+                variants={navVariants as any}
             >
                 {/* Logo */}
                 <Link
@@ -75,8 +83,8 @@ export function Header() {
                                 key={link.href}
                                 href={link.href}
                                 className={`relative text-sm font-medium transition-colors ${active
-                                    ? "text-foreground"
-                                    : "text-muted-foreground hover:text-foreground"
+                                        ? "text-foreground"
+                                        : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 {link.label}
@@ -85,11 +93,7 @@ export function Header() {
                                     <motion.span
                                         layoutId="nav-underline"
                                         className="absolute -bottom-[18px] left-0 h-[2px] w-full bg-primary"
-                                        transition={{
-                                            type: "spring",
-                                            stiffness: 500,
-                                            damping: 30,
-                                        }}
+                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                     />
                                 )}
                             </Link>
@@ -105,7 +109,7 @@ export function Header() {
                         </Button>
                     )}
 
-                    <CartDropdown/>
+                    <CartDropdown />
 
                     {/* Mobile Menu */}
                     <Sheet>
@@ -130,8 +134,8 @@ export function Header() {
                                             key={link.href}
                                             href={link.href}
                                             className={`text-sm font-medium transition-colors ${active
-                                                ? "text-foreground"
-                                                : "text-muted-foreground hover:text-foreground"
+                                                    ? "text-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
                                                 }`}
                                         >
                                             {link.label}
@@ -140,9 +144,7 @@ export function Header() {
                                 })}
 
                                 <div className="pt-4 border-t border-border flex flex-col gap-2">
-                                    {!isAuthenticated && (
-                                        <Button variant="outline">Sign in</Button>
-                                    )}
+                                    {!isAuthenticated && <Button variant="outline">Sign in</Button>}
                                     <Link href="/cart">
                                         <Button>View Cart</Button>
                                     </Link>
@@ -151,7 +153,7 @@ export function Header() {
                         </SheetContent>
                     </Sheet>
                 </div>
-            </nav>
-        </header>
+            </motion.nav>
+        </motion.header>
     );
 }
