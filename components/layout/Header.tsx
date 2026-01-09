@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
-
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,22 +11,23 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { useScrollHeader } from "@/lib/hooks/useScrollheader";
+import { CartDropdown } from "../custom/CartDropdown";
+
 
 /* ------------------------------------------------------------------
-   MOCK AUTH (replace with real auth/store later)
+   MOCK AUTH
 ------------------------------------------------------------------ */
 type UserRole = "admin" | "user";
 
-const useAuth = () => {
-    return {
-        isAuthenticated: true,
-        role: "user" as UserRole,
-        cartCount: 2,
-    };
-};
+const useAuth = () => ({
+    isAuthenticated: true,
+    role: "user" as UserRole,
+    cartCount: 2,
+});
 
 /* ------------------------------------------------------------------
-   Navigation config (role-aware)
+   NAV CONFIG
 ------------------------------------------------------------------ */
 const navLinks = [
     { label: "Shop", href: "/shop", roles: ["user", "admin"] },
@@ -39,29 +38,25 @@ const navLinks = [
 
 export function Header() {
     const pathname = usePathname();
+    const compact = useScrollHeader();
     const { isAuthenticated, role, cartCount } = useAuth();
-
-    /* --------------------------------------------------------------
-       Scroll elevation + blur
-    -------------------------------------------------------------- */
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 8);
-        window.addEventListener("scroll", onScroll);
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
 
     const visibleLinks = navLinks.filter((l) =>
         isAuthenticated ? l.roles.includes(role) : true
     );
 
+    const isActiveRoute = (href: string) =>
+        pathname === href || pathname.startsWith(href + "/");
+
     return (
         <header
-            className={`sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur transition-shadow ${scrolled ? "shadow-sm" : ""
+            className={`sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur transition-shadow ${compact ? "shadow-sm" : ""
                 }`}
         >
-            <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+            <nav
+                className={`mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 transition-all duration-300 ${compact ? "h-12" : "h-16"
+                    }`}
+            >
                 {/* Logo */}
                 <Link
                     href="/"
@@ -71,24 +66,31 @@ export function Header() {
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="relative hidden md:flex items-center gap-8">
                     {visibleLinks.map((link) => {
-                        const isActive = pathname === link.href;
+                        const active = isActiveRoute(link.href);
 
                         return (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`relative text-sm transition-colors ${isActive
-                                        ? "text-foreground font-medium"
-                                        : "text-muted-foreground hover:text-foreground"
+                                className={`relative text-sm font-medium transition-colors ${active
+                                    ? "text-foreground"
+                                    : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 {link.label}
 
-                                {/* Active underline */}
-                                {isActive && (
-                                    <span className="absolute -bottom-[18px] left-0 h-[2px] w-full bg-primary" />
+                                {active && (
+                                    <motion.span
+                                        layoutId="nav-underline"
+                                        className="absolute -bottom-[18px] left-0 h-[2px] w-full bg-primary"
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 500,
+                                            damping: 30,
+                                        }}
+                                    />
                                 )}
                             </Link>
                         );
@@ -103,15 +105,7 @@ export function Header() {
                         </Button>
                     )}
 
-                    {/* Cart with badge */}
-                    <Button size="sm" className="relative flex items-center gap-1">
-                        <ShoppingCartIcon fontSize="small" aria-label="Cart" />
-                        {cartCount > 0 && (
-                            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-medium text-accent-foreground">
-                                {cartCount}
-                            </span>
-                        )}
-                    </Button>
+                    <CartDropdown count={cartCount} />
 
                     {/* Mobile Menu */}
                     <Sheet>
@@ -129,15 +123,15 @@ export function Header() {
                         <SheetContent side="right" className="w-64 bg-background">
                             <div className="flex flex-col gap-6 pt-6">
                                 {visibleLinks.map((link) => {
-                                    const isActive = pathname === link.href;
+                                    const active = isActiveRoute(link.href);
 
                                     return (
                                         <Link
                                             key={link.href}
                                             href={link.href}
-                                            className={`text-sm transition-colors ${isActive
-                                                    ? "font-medium text-foreground"
-                                                    : "text-muted-foreground hover:text-foreground"
+                                            className={`text-sm font-medium transition-colors ${active
+                                                ? "text-foreground"
+                                                : "text-muted-foreground hover:text-foreground"
                                                 }`}
                                         >
                                             {link.label}
@@ -149,14 +143,9 @@ export function Header() {
                                     {!isAuthenticated && (
                                         <Button variant="outline">Sign in</Button>
                                     )}
-                                    <Button className="flex items-center gap-2">
-                                        <ShoppingCartIcon fontSize="small" aria-label="Cart" />
-                                        {cartCount > 0 && (
-                                            <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">
-                                                {cartCount}
-                                            </span>
-                                        )}
-                                    </Button>
+                                    <Link href="/cart">
+                                        <Button>View Cart</Button>
+                                    </Link>
                                 </div>
                             </div>
                         </SheetContent>
