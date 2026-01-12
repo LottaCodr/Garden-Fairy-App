@@ -14,6 +14,8 @@ import { Minus, Plus } from "lucide-react";
 import Recommendations from "./recommendations";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useCartStore } from "@/store/cart.store";
+import { Product } from "@/components/custom/ProductCard";
 
 const images = [
     "/monstera-main.png",
@@ -24,8 +26,12 @@ const images = [
 ];
 
 
-export default function ProductDetailPage() {
+export default function ProductDetailPage({ product }: { product: Product }) {
     const [activeImage, setActiveImage] = useState(images[0])
+    const addItem = useCartStore((add) => add.addItem);
+    const removeItem = useCartStore((remove) => remove.removeItem)
+
+
     return (
         <main className="mx-auto max-w-7xl px-4 py-10">
             {/* Breadcrumbs */}
@@ -55,7 +61,7 @@ export default function ProductDetailPage() {
                     </Card>
 
                     <div className="grid grid-cols-4 gap-3">
-                        {images.map(( selected, i) => (
+                        {images.map((selected, i) => (
                             <Card
                                 onClick={() => setActiveImage(selected)}
                                 key={selected}
@@ -113,18 +119,30 @@ export default function ProductDetailPage() {
                     {/* Quantity + CTA */}
                     <div className="flex gap-4">
                         <div className="flex items-center rounded-md border">
-                            <Button variant="ghost" size="icon"><Minus /></Button>
+                            <Button variant="ghost" onClick={() => removeItem(
+                                product.id
+                            )} size="icon"><Minus /></Button>
                             <span className="px-4">1</span>
-                            <Button variant="ghost" size="icon"><Plus /></Button>
+                            <Button onClick={() => addItem({
+                                id: product.id,
+                                name: product.name,
+                                price: product.price,
+                                image: product.image,
+                            })} variant="ghost" size="icon"><Plus /></Button>
                         </div>
-                        <Button size="lg" className="flex-1">Add to Cart</Button>
+                        <Button onClick={() => addItem({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                        })} size="lg" className="flex-1">Add to Cart</Button>
                     </div>
 
                     {/* Delivery */}
                     <Card>
                         <CardContent className="space-y-3 pt-6">
                             <p className="font-semibold">Estimate Your Delivery</p>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 text-black gap-3">
                                 <select className="input">Select State</select>
                                 <select className="input">Select City</select>
                             </div>
@@ -158,7 +176,7 @@ export default function ProductDetailPage() {
             </section>
 
             {/* Recommendations */}
-            <Recommendations/>
+            <Recommendations />
         </main>
     );
 }

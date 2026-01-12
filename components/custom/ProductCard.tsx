@@ -8,7 +8,7 @@ import { ProductQuickView } from "./ProductQuickView";
 import { useProductUI } from "@/store/useProductUI";
 import { useRouter } from "next/navigation";
 
-interface Product {
+export interface Product {
     id: string;
     name: string;
     description: string;
