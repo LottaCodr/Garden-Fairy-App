@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart.store";
 import { ProductQuickView } from "./ProductQuickView";
 import { useProductUI } from "@/store/useProductUI";
+import { useRouter } from "next/navigation";
 
 interface Product {
     id: string;
@@ -18,6 +19,14 @@ interface Product {
 export function ProductCard({ product }: { product: Product }) {
     const addItem = useCartStore((s) => s.addItem);
     const openQuickView = useProductUI((s) => s.openQuickView);
+    const router = useRouter()
+
+
+    const handleRedirectToDetailsPage = () => {
+        console.log("/productPage")
+        router.push("/product")
+        
+    }
 
     return (
         <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col h-full">
@@ -38,7 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
 
             {/* Content */}
-            <CardContent className="space-y-2 pt-4">
+            <CardContent onClick={handleRedirectToDetailsPage} className="space-y-2 pt-4">
                 <h3 className="text-sm font-semibold leading-tight">
                     {product.name}
                 </h3>

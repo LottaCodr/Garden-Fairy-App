@@ -1,5 +1,4 @@
-// Senior-level Product Details Page
-// Stack: Next.js App Router + Tailwind + shadcn/ui + Framer Motion
+
 
 "use client";
 
