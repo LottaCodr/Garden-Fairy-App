@@ -11,8 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Minus, Plus } from "lucide-react";
+import Recommendations from "./recommendations";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+
+const images = [
+    "/monstera-main.png",
+    "/monstera-1.png",
+    "/monstera-2.png",
+    "/monstera-3.png",
+    // "/monstera-4.png",
+];
+
 
 export default function ProductDetailPage() {
+    const [activeImage, setActiveImage] = useState(images[0])
     return (
         <main className="mx-auto max-w-7xl px-4 py-10">
             {/* Breadcrumbs */}
@@ -25,6 +38,7 @@ export default function ProductDetailPage() {
             <section className="grid gap-12 lg:grid-cols-2">
                 {/* Image Gallery */}
                 <motion.div
+                    key={activeImage}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
@@ -32,8 +46,8 @@ export default function ProductDetailPage() {
                 >
                     <Card className="overflow-hidden">
                         <Image
-                            src="/monstera-main.png"
-                            alt="Monstera Deliciosa"
+                            src={activeImage}
+                            alt={activeImage}
                             width={700}
                             height={700}
                             className="aspect-square object-cover"
@@ -41,18 +55,30 @@ export default function ProductDetailPage() {
                     </Card>
 
                     <div className="grid grid-cols-4 gap-3">
-                        {[1, 2, 3, 4].map((i) => (
+                        {images.map(( selected, i) => (
                             <Card
-                                key={i}
-                                className="cursor-pointer overflow-hidden border-muted hover:border-primary"
+                                onClick={() => setActiveImage(selected)}
+                                key={selected}
+                                className={cn(
+                                    "cursor-pointer overflow-hidden transition-all",
+                                    activeImage === selected
+                                        ? "ring-2 ring-primary"
+                                        : "border-muted hover:border-primary"
+                                )}
                             >
                                 <Image
-                                    src={`/monstera-${i}.png`}
-                                    alt="Monstera thumbnail"
+                                    src={selected}
+                                    alt={`Monstera thumbnail ${i + 1}`}
                                     width={200}
                                     height={200}
                                     className="aspect-square object-cover"
                                 />
+                                {/* <span
+                                    className={cn(
+                                        "absolute inset-0 rounded-md ring-2 ring-offset-2",
+                                        selected ? "ring-black" : "ring-transparent"
+                                    )}
+                                /> */}
                             </Card>
                         ))}
                     </div>
@@ -132,28 +158,7 @@ export default function ProductDetailPage() {
             </section>
 
             {/* Recommendations */}
-            <section className="mt-24">
-                <h2 className="mb-6 text-center text-2xl font-bold">You Might Also Like</h2>
-                <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-                    {["Fiddle Leaf Fig", "Snake Plant", "ZZ Plant", "Pothos"].map((p) => (
-                        <Card key={p} className="group cursor-pointer">
-                            <CardContent className="p-3">
-                                <div className="overflow-hidden rounded-md">
-                                    <Image
-                                        src={`/recommend-${p}.png`}
-                                        alt={p}
-                                        width={400}
-                                        height={500}
-                                        className="aspect-[4/5] object-cover transition-transform group-hover:scale-105"
-                                    />
-                                </div>
-                                <p className="mt-3 font-medium">{p}</p>
-                                <p className="text-sm text-muted-foreground">₦12,000</p>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </section>
+            <Recommendations/>
         </main>
     );
 }

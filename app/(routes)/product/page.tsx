@@ -1,11 +1,11 @@
-import ProductDetailPage from '@/components/sections/product.detail'
+import ProductDetailPage from '@/components/sections/product/product.detail'
 
 const Product = () => {
-  return (
-      <>
-          <ProductDetailPage/>
-      </>
-  )
+    return (
+        <>
+            <ProductDetailPage />
+        </>
+    )
 }
 
 export default Product

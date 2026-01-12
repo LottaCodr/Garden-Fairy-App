@@ -1,4 +1,4 @@
-import ProductDetailPage from "@/components/sections/product.detail";
+import ProductDetailPage from "@/components/sections/product/product.detail";
 import { type Metadata } from "next";
 
 
