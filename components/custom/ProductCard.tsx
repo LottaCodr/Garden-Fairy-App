@@ -24,8 +24,8 @@ export function ProductCard({ product }: { product: Product }) {
 
     const handleRedirectToDetailsPage = () => {
         console.log("/productPage")
-        router.push("/product")
-        
+        router.push(`/product/${product.id}`)
+
     }
 
     return (
@@ -47,7 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
 
             {/* Content */}
-            <CardContent onClick={handleRedirectToDetailsPage} className="space-y-2 pt-4">
+            <CardContent onClick={handleRedirectToDetailsPage} className="space-y-2 pt-4 cursor-pointer">
                 <h3 className="text-sm font-semibold leading-tight">
                     {product.name}
                 </h3>

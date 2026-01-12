@@ -1,4 +1,5 @@
 import ProductDetailPage from "@/components/sections/product/product.detail";
+import { products } from "@/lib/data/products";
 import { type Metadata } from "next";
 
 
@@ -29,9 +30,15 @@ const ProductPage = ({ params }: {
     }
 }) => {
 
+    const product = products.find((p) => p.id === params.productId);
+
+    // if (!product) {
+    //     return <div>Product not found</div>;
+    // }
+
     return (
-        <ProductDetailPage />
-    )
+        <ProductDetailPage product={product} />
+    );
 }
 
 export default ProductPage
