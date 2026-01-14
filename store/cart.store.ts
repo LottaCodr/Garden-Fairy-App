@@ -6,6 +6,7 @@ export type CartItem = {
     price: number;
     image: string;
     quantity: number;
+    variant?: string;
 }
 
 type CartState = {
@@ -15,6 +16,9 @@ type CartState = {
     addItem: (item: Omit<CartItem, "quantity">) => void;
     removeItem: (id: string) => void;
     clearCart: () => void;
+
+    updateQty: (id: string, qty: number) => void;
+    subTotal: () => number;
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -39,13 +43,13 @@ export const useCartStore = create<CartState>((set, get) => ({
                         ? { ...i, quantity: i.quantity + 1 }
                         : i)
                 : [...state.items, { ...item, quantity: 1 }];
-            
+
             return {
                 items,
                 count: items.reduce((acc, i) => acc + i.quantity, 0)
             };
         }),
-    
+
     removeItem: (id: string) =>
         set((state) => {
             const items = state.items.filter((i) => i.id !== id);
@@ -54,8 +58,14 @@ export const useCartStore = create<CartState>((set, get) => ({
                 count: items.reduce((acc, i) => acc + i.quantity, 0),
             }
         }),
-    
-    clearCart: () => set({ items: [], count: 0 })
+
+    clearCart: () => set({ items: [], count: 0 }),
+
+    updateQty: (id, qty) => set((state) => ({
+        items: state.items.map((i) => i.id === id ? { ...i, quantity: Math.max(1, qty) } : i),
+    })),
+
+    subTotal: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 }));
 
 
