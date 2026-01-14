@@ -1,9 +1,7 @@
-import { Card, CardContent } from '@/components/custom/Card';
 import { Button } from '@/components/ui/button';
-// import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import React from 'react'
 
 export default function OrderSummary({ subtotal }: { subtotal: number }) {
     const deliveryFee = 3500;
@@ -33,9 +31,11 @@ export default function OrderSummary({ subtotal }: { subtotal: number }) {
                     </div>
                 </div>
 
-                <Button size="lg" className="w-full">
-                    Proceed to Checkout
-                </Button>
+                <Link href="/checkout">
+                    <Button size="lg" className="w-full">
+                        Proceed to Checkout
+                    </Button>
+                </Link>
 
                 <Link
                     href="/shop"
