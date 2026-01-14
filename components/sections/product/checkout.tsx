@@ -14,7 +14,7 @@ type Quote = {
 };
 
 export default function CheckoutPageComponent() {
-    const { items } = useCartStore();
+    const { items, subTotal } = useCartStore();
     const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -38,31 +38,32 @@ export default function CheckoutPageComponent() {
         window.location.href = data.paymentLink;
     }
 
-    if (!quote) return <CheckOutSkeleton />;
+    if (!quote)
+        // return <CheckOutSkeleton />;
 
-    return (
-        <main className="mx-auto max-w-3xl px-4 py-10">
-            <h1 className="mb-6 text-2xl font-bold">Checkout</h1>
+        return (
+            <main className="mx-auto max-w-3xl px-4 py-10">
+                <h1 className="mb-6 text-2xl font-bold">Checkout</h1>
 
-            <Card>
-                <CardContent className="space-y-4 p-6">
-                    <Row label="Subtotal" value={quote.subtotal} />
-                    <Row label="Delivery" value={quote.delivery} />
-                    <Separator />
-                    <Row label="Total" value={quote.total} strong />
+                <Card>
+                    <CardContent className="space-y-4 p-6">
+                        <Row label="Subtotal" value={978787} />
+                        <Row label="Delivery" value={6768789} />
+                        <Separator />
+                        <Row label="Total" value={87987979} strong />
 
-                    <Button
-                        size="lg"
-                        className="w-full"
-                        onClick={handlePayment}
-                        disabled={loading}
-                    >
-                        Pay Now
-                    </Button>
-                </CardContent>
-            </Card>
-        </main>
-    );
+                        <Button
+                            size="lg"
+                            className="w-full"
+                            onClick={handlePayment}
+                            disabled={loading}
+                        >
+                            {loading ? "Loading..." : "Pay Now"} 
+                        </Button>
+                    </CardContent>
+                </Card>
+            </main>
+        );
 }
 
 function Row({
