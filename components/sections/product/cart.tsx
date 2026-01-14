@@ -1,16 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart.store";
+import OrderSummary from "./order.summary";
+import EmptyCart from "./empty.card";
 
-export default function CartPage() {
-    const { items, updateQty, removeItem, subtotal } = useCartStore();
+export default function CartPageComponent() {
+    const { items, updateQty, removeItem, subTotal } = useCartStore();
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-10">
@@ -91,68 +91,15 @@ export default function CartPage() {
                     </section>
 
                     {/* Summary */}
-                    <OrderSummary subtotal={subtotal()} />
+                    <OrderSummary subtotal={subTotal()} />
                 </div>
             )}
         </main>
     );
 }
 
-function OrderSummary({ subtotal }: { subtotal: number }) {
-    const deliveryFee = 3500;
-    const total = subtotal + deliveryFee;
-
-    return (
-        <Card className="h-fit">
-            <CardContent className="space-y-6 p-6">
-                <h2 className="text-lg font-semibold">Order Summary</h2>
-
-                <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span>₦{subtotal.toLocaleString()}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                        <span>Delivery</span>
-                        <span>₦{deliveryFee.toLocaleString()}</span>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex justify-between font-semibold">
-                        <span>Total</span>
-                        <span>₦{total.toLocaleString()}</span>
-                    </div>
-                </div>
-
-                <Button size="lg" className="w-full">
-                    Proceed to Checkout
-                </Button>
-
-                <Link
-                    href="/shop"
-                    className="block text-center text-sm text-muted-foreground hover:text-primary"
-                >
-                    Continue shopping
-                </Link>
-            </CardContent>
-        </Card>
-    );
-}
 
 
-function EmptyCart() {
-    return (
-        <div className="flex flex-col items-center gap-4 py-24 text-center">
-            <p className="text-lg font-medium">Your cart is empty</p>
-            <p className="text-sm text-muted-foreground">
-                Looks like you haven’t added anything yet.
-            </p>
-            <Link href="/shop">
-                <Button>Browse products</Button>
-            </Link>
-        </div>
-    );
-}
+
+
 
