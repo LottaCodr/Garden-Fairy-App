@@ -1,21 +1,24 @@
-export interface Product {
+export type Product = {
     id: string;
     name: string;
     description: string;
-    price: number;
     image: string;
-}
+    price: number;
+};
 
-
-export interface Category {
+export type Category = {
     id: string;
     name: string;
-    image: string;
-}
+    image?: string;
+    description?: string;
+    icon?: string;
+};
 
-
-export interface Testimonial {
+export type Testimonial = {
     id: string;
     quote: string;
-    author: string;
-}
+    author?: string;
+    name?: string;
+    role?: string;
+    avatar?: string;
+};

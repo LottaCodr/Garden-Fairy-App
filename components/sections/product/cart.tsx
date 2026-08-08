@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +11,11 @@ import OrderSummary from "./order.summary";
 import EmptyCart from "./empty.card";
 
 export default function CartPageComponent() {
-    const { items, updateQty, removeItem, subTotal } = useCartStore();
+    const items = useCartStore((s) => s.items);
+    const addItem = useCartStore((s) => s.addItem);
+    const decrementItem = useCartStore((s) => s.decrementItem);
+    const removeItem = useCartStore((s) => s.removeItem);
+    const subTotal = useCartStore((s) => s.subTotal());
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-10">
@@ -25,22 +30,29 @@ export default function CartPageComponent() {
                         {items.map((item) => (
                             <Card key={item.id}>
                                 <CardContent className="flex gap-4 p-4">
-                                    <Image
-                                        src={item.image}
-                                        alt={item.name}
-                                        width={120}
-                                        height={120}
-                                        className="rounded-md object-cover"
-                                    />
+                                    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-md">
+                                        <Image
+                                            src={item.image}
+                                            alt={item.name}
+                                            fill
+                                            sizes="120px"
+                                            className="object-cover"
+                                        />
+                                    </div>
 
                                     <div className="flex flex-1 flex-col justify-between">
                                         <div>
-                                            <h3 className="font-semibold">{item.name}</h3>
-                                            {item.variant && (
+                                            <Link
+                                                href={`/product/${item.id}`}
+                                                className="font-semibold hover:text-primary"
+                                            >
+                                                {item.name}
+                                            </Link>
+                                            {item.variant ? (
                                                 <p className="text-sm text-muted-foreground">
                                                     Size: {item.variant}
                                                 </p>
-                                            )}
+                                            ) : null}
                                             <p className="mt-1 font-medium">
                                                 ₦{item.price.toLocaleString()}
                                             </p>
@@ -48,58 +60,82 @@ export default function CartPageComponent() {
 
                                         <div className="flex items-center justify-between">
                                             {/* Quantity */}
-                                            <div className="flex items-center rounded-md border">
+                                            <div className="flex items-center rounded-md border border-input">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() =>
-                                                        updateQty(item.id, item.quantity - 1)
-                                                    }
+                                                    className="h-8 w-8"
+                                                    onClick={() => decrementItem(item.id)}
+                                                    aria-label="Decrease quantity"
                                                 >
                                                     <Minus className="h-4 w-4" />
                                                 </Button>
 
-                                                <span className="px-4 text-sm">
+                                                <span className="min-w-10 px-2 text-center text-sm">
                                                     {item.quantity}
                                                 </span>
 
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    className="h-8 w-8"
                                                     onClick={() =>
-                                                        updateQty(item.id, item.quantity + 1)
+                                                        addItem({
+                                                            id: item.id,
+                                                            name: item.name,
+                                                            price: item.price,
+                                                            image: item.image,
+                                                        })
                                                     }
+                                                    aria-label="Increase quantity"
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                 </Button>
                                             </div>
 
-                                            {/* Remove */}
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => removeItem(item.id)}
-                                                className="text-destructive"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-semibold">
+                                                    ₦
+                                                    {(item.price * item.quantity).toLocaleString()}
+                                                </span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="text-destructive hover:text-destructive"
+                                                    aria-label="Remove from cart"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))}
+
+                        <div className="flex items-center justify-between pt-2">
+                            <Link
+                                href="/shop"
+                                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                            >
+                                <ShoppingBag className="h-4 w-4" />
+                                Continue shopping
+                            </Link>
+                            <Button
+                                variant="ghost"
+                                onClick={() => useCartStore.getState().clearCart()}
+                                className="text-destructive hover:text-destructive"
+                            >
+                                Clear cart
+                            </Button>
+                        </div>
                     </section>
 
                     {/* Summary */}
-                    <OrderSummary subtotal={subTotal()} />
+                    <OrderSummary subtotal={subTotal} />
                 </div>
             )}
         </main>
     );
 }
-
-
-
-
-
-

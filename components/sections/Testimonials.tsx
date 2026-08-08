@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "@/lib/data/testimonials";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function Testimonials() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const controls = useAnimation();
 
     // Auto-scroll logic
     useEffect(() => {
@@ -63,7 +62,7 @@ export function Testimonials() {
                             <Card className="bg-card border border-border h-full shadow hover:shadow-lg transition">
                                 <CardContent className="p-6 flex  flex-col gap-3">
                                     <p className="text-sm leading-relaxed text-foreground/90">
-                                        "{t.quote}"
+                                        &ldquo;{t.quote}&rdquo;
                                     </p>
                                     <p className="mt-4 text-xs  font-bold text-muted-foreground">
                                         - {t.role}

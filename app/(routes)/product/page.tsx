@@ -1,11 +1,6 @@
-import ProductDetailPage from '@/components/sections/product/product.detail'
+import { redirect } from "next/navigation";
 
-const Product = () => {
-    return (
-        <>
-            {/* <ProductDetailPage /> */}
-        </>
-    )
+// Listing lives at /shop; this is here to keep /product as a valid route.
+export default function ProductIndex() {
+    redirect("/shop");
 }
-
-export default Product

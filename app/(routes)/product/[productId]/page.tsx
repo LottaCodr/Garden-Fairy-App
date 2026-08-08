@@ -1,44 +1,42 @@
 import ProductDetailPage from "@/components/sections/product/product.detail";
 import { products } from "@/lib/data/products";
 import { type Metadata } from "next";
+import { notFound } from "next/navigation";
 
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ productId: string }>;
+}): Promise<Metadata> {
+    const { productId } = await params;
+    const product = products.find((p) => p.id === productId);
 
-export async function generateMetadata({ params }: { params: { productId: string } }): Promise<Metadata> {
-
-    const getPlants = ''
-
-
-    if (!getPlants)
+    if (!product) {
         return {
-            title: "The Garden Fairy",
-            description: "Discover beautiful indoor plants to enhance your space. Browse our collection of vibrant, easy-to-care-for plants perfect for every home."
+            title: "Product not found · The Garden Fairy",
+            description: "Discover beautiful plants and AI-powered planners at The Garden Fairy.",
         };
+    }
 
     return {
-        title: "The Garden Fairy",
-        description: "Discover beautiful indoor plants to enhance your space. Browse our collection of vibrant, easy-to-care-for plants perfect for every home."
-
-    }
-
-
+        title: `${product.name} · The Garden Fairy`,
+        description: product.description,
+    };
 }
 
-
-const ProductPage = ({ params }: {
-    params: {
-        productId: string
-    }
+const ProductPage = async ({
+    params,
+}: {
+    params: Promise<{ productId: string }>;
 }) => {
+    const { productId } = await params;
+    const product = products.find((p) => p.id === productId);
 
-    const product = products.find((p) => p.id === params.productId);
+    if (!product) {
+        notFound();
+    }
 
-    // if (!product) {
-    //     return <div>Product not found</div>;
-    // }
+    return <ProductDetailPage product={product} />;
+};
 
-    return (
-        <ProductDetailPage product={product} />
-    );
-}
-
-export default ProductPage
+export default ProductPage;
