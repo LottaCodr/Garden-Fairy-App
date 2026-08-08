@@ -1,89 +1,181 @@
 "use client";
 
-import { Button } from "../custom/Button";
+import { ArrowRight, Leaf, Search, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6 },
+  },
+};
 
 export function Hero() {
-    return (
-        <section
-            aria-label="Hero section"
-            className="relative isolate flex min-h-[360px] items-center justify-center bg-cover bg-center md:min-h-[440px] lg:min-h-[520px]"
-            style={{
-                backgroundImage:
-                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEqkXZ-5CD-H-6ixzT8piHm1-xAxeMJoCkiIFWOlDSmkp3URwZ6dwVNSVBVZKBGnwg9BMfyPi5b3YbEnZN7_F_KhWwrhElqbPEV442UZMkQJPIE0BQHoSVUzv8CZhdRX39Zk1E2udu6gtExKDk2Whmw_25LQGWaMs_4Jm-ZEuKL6Xdl_ekMW4BvjLAFNOVVWULrXkB00dIQvcpYbPXkJ5QXvSW3ahPcm4jPox4oZu1ezzK3U4wADbn_dszLib0bMyKMHu2fM1rBPk')",
-            }}
+  return (
+    <section
+      className="relative min-h-[85vh] flex items-center overflow-hidden bg-background"
+      aria-label="Hero section"
+    >
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        {/* Soft gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/30" />
+
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-secondary/40 blur-3xl" />
+      </div>
+
+      <div className="container-2xl relative">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid gap-12 lg:grid-cols-2 lg:items-center"
         >
-            {/* Overlay */}
-            <div
-                className="absolute inset-0 -z-10 bg-black/50"
-                aria-hidden="true"
-            />
+          {/* Left Content */}
+          <motion.div variants={itemVariants} className="space-y-8">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
+                <Sparkles className="h-4 w-4" />
+                Fresh Arrivals Weekly
+              </span>
+            </motion.div>
 
-            {/* Content */}
-            <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 py-14 text-center">
-                {/* Heading */}
-                <h1 className="mb-4 max-w-3xl text-balance text-3xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-                    Fresh Plants Delivered Nationwide
-                </h1>
+            {/* Heading */}
+            <motion.h1
+              className="text-balance text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              Bring Nature{" "}
+              <span className="text-primary">Home</span>
+              <br />
+              with Confidence
+            </motion.h1>
 
-                {/* Subtext (optional but senior-level UX) */}
-                <p className="mb-8 max-w-xl text-sm text-white/90 md:text-base">
-                    Curated indoor and outdoor plants, delivered straight to your door.
-                </p>
+            {/* Description */}
+            <motion.p
+              className="text-lg text-muted-foreground max-w-lg leading-relaxed"
+              style={{ maxWidth: "560px" }}
+            >
+              Handpicked plants, expert care guides, and a community that loves
+              greenery as much as you do. Your urban jungle starts here.
+            </motion.p>
 
-                {/* Search */}
-                <form
-                    onSubmit={(e) => e.preventDefault()}
-                    className="mb-8 flex w-full max-w-md items-center gap-2"
-                    role="search"
-                >
-                    <div className="flex w-full items-center gap-2 rounded-lg bg-white/95 px-3 py-2 shadow-sm backdrop-blur">
-                        <SearchIcon />
-                        <input
-                            type="search"
-                            placeholder="Search indoor, outdoor or any plant"
-                            className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
-                        />
-                    </div>
+            {/* Search */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-3 max-w-lg"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  type="search"
+                  placeholder="Search plants, care tips, collections..."
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-border bg-card text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <Button size="lg" className="h-12 px-6">
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </Button>
+            </motion.div>
 
-                    <Button type="submit" className="px-5 py-2">
-                        Search
-                    </Button>
-                </form>
+            {/* CTA Buttons */}
+            <motion.div
+              className="flex flex-wrap gap-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Button
+                size="lg"
+                className="h-12 px-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
+              >
+                Shop Plants
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 px-8 rounded-xl border-border hover:border-primary hover:text-primary"
+              >
+                Explore Collections
+              </Button>
+            </motion.div>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                    <Button variant="primary" className="shadow-md">
-                        Shop Now
-                    </Button>
+            {/* Trust indicators */}
+            <motion.div
+              className="flex flex-wrap items-center gap-6 pt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs">
+                  ✓
+                </span>
+                Free shipping over ₦50,000
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs">
+                  ✓
+                </span>
+                7-day return guarantee
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Leaf className="h-4 w-4 text-primary" />
+                Eco-friendly packaging
+              </div>
+            </motion.div>
+          </motion.div>
 
-                    <Button
-                        variant="ghost"
-                        className="border border-white text-white hover:bg-white/10"
-                    >
-                        Explore Collections
-                    </Button>
-                </div>
-            </div>
-        </section>
-    );
-}
+          {/* Right Content - Visual */}
+          <motion.div
+            variants={itemVariants}
+            className="relative hidden lg:block"
+          >
+            {/* Main image card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, rotate: -3 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative rounded-2xl overflow-hidden shadow-xl shadow-primary/10 ring-1 ring-border">
+                <img
+                  src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&q=80"
+                  alt="Beautiful indoor plants collection"
+                  className="w-full h-[500px] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
+              </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
 
-/* ----------------------------- */
-/* Icon (kept isolated + clean)  */
-/* ----------------------------- */
-
-function SearchIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            className="h-5 w-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-        >
-            <circle cx="11" cy="11" r="7" />
-            <line x1="16.5" y1="16.5" x2="21" y2="21" />
-        </svg>
-    );
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+    </section>
+  );
 }
