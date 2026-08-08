@@ -7,6 +7,7 @@ export type Product = {
     tags: string[];
     isPremium: boolean;
     price: number;
+    stock: number;
 };
 
 export const products: Product[] = [
@@ -20,6 +21,7 @@ export const products: Product[] = [
         tags: ["garden", "tropical", "air-purifying"],
         isPremium: false,
         price: 7500,
+        stock: 25,
     },
     {
         id: "p2",
@@ -31,6 +33,7 @@ export const products: Product[] = [
         tags: ["home", "interior", "design"],
         isPremium: true,
         price: 11900,
+        stock: 8,
     },
     {
         id: "p3",
@@ -42,6 +45,7 @@ export const products: Product[] = [
         tags: ["workspace", "productivity", "design"],
         isPremium: true,
         price: 9500,
+        stock: 15,
     },
     {
         id: "p4",
@@ -53,6 +57,7 @@ export const products: Product[] = [
         tags: ["garden", "outdoor", "planning"],
         isPremium: false,
         price: 8500,
+        stock: 12,
     },
     {
         id: "p5",
@@ -64,6 +69,7 @@ export const products: Product[] = [
         tags: ["garden", "low-light", "air-purifying"],
         isPremium: false,
         price: 4500,
+        stock: 45,
     },
     {
         id: "p6",
@@ -75,5 +81,6 @@ export const products: Product[] = [
         tags: ["fashion", "styling", "ai"],
         isPremium: true,
         price: 6800,
+        stock: 5,
     },
 ];
