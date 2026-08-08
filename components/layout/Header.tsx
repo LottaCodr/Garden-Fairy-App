@@ -17,11 +17,11 @@ import { useUIStore } from "@/store/ui.store";
 import { CartDropdown } from "../custom/CartDropdown";
 import { useEffect } from "react";
 
-const navLinks: { label: string; href: string; roles: Array<"user" | "admin"> }[] = [
-  { label: "Shop", href: "/shop", roles: ["user", "admin"] },
-  { label: "About", href: "/about", roles: ["user", "admin"] },
-  { label: "Contact", href: "/contact", roles: ["user", "admin"] },
-  { label: "Admin", href: "/admin", roles: ["admin"] },
+const navLinks = [
+  { label: "Shop", href: "/shop", adminOnly: false },
+  { label: "About", href: "/about", adminOnly: false },
+  { label: "Contact", href: "/contact", adminOnly: false },
+  { label: "Admin", href: "/admin", adminOnly: true },
 ];
 
 export function Header() {
@@ -48,15 +48,14 @@ export function Header() {
   // avoid SSR hydration mismatch with persisted store
   const hydrated = useHydrated();
 
-  const role = user?.role;
+  const isAdmin = user?.role === "admin";
   const visibleLinks = navLinks.filter((l) => {
-    if (!hydrated) return !l.roles || l.roles.length === 0;
-    if (!isAuthenticated) return !l.roles || l.roles.length === 0;
-    return role ? l.roles.includes(role) : false;
+    if (l.adminOnly) return hydrated && isAuthenticated && isAdmin;
+    return true;
   });
 
   const isActiveRoute = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+    pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
   return (
     <motion.header
@@ -233,7 +232,7 @@ export function Header() {
                       Account
                     </p>
                     <div className="flex flex-col gap-2">
-                      {hydrated && isAuthenticated ? (
+                      {hydrated && isAuthenticated && user ? (
                         <>
                           <Link href="/profile">
                             <Button
@@ -241,17 +240,17 @@ export function Header() {
                               className="w-full justify-start gap-3 rounded-lg"
                             >
                               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                                {user?.name.charAt(0).toUpperCase()}
+                                {user.name.charAt(0).toUpperCase()}
                               </span>
                               <div>
-                                <p className="text-sm font-medium">{user?.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {user?.role === "admin" ? "Admin" : "Customer"}
+                                <p className="text-sm font-medium">{user.name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">
+                                  {user.role}
                                 </p>
                               </div>
                             </Button>
                           </Link>
-                          {user?.role === "admin" && (
+                          {user.role === "admin" && (
                             <Link href="/admin">
                               <Button
                                 variant="outline"
@@ -265,8 +264,8 @@ export function Header() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start gap-3 text-destructive rounded-lg"
-                            onClick={() => {
-                              signout();
+                            onClick={async () => {
+                              await signout();
                               router.push("/");
                             }}
                           >
