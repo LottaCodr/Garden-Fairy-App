@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus,
@@ -21,6 +22,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { SafeImage } from "@/components/custom/SafeImage";
+import { toast } from "@/store/toast.store";
 import { cn } from "@/lib/utils";
 
 const emptyForm = {
@@ -35,18 +38,27 @@ const emptyForm = {
     tags: "",
 };
 
-export default function AdminProductsPage() {
+function AdminProductsPageInner() {
     const products = useAdminStore((s) => s.products);
     const addProduct = useAdminStore((s) => s.addProduct);
     const updateProduct = useAdminStore((s) => s.updateProduct);
     const deleteProduct = useAdminStore((s) => s.deleteProduct);
 
-    const [query, setQuery] = useState("");
+    const searchParams = useSearchParams();
+    const urlQuery = searchParams.get("q") ?? "";
+    const [query, setQuery] = useState(urlQuery);
     const [category, setCategory] = useState<string>("all");
     const [editing, setEditing] = useState<Product | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+    // Keep the search box in sync with ?q= (from the admin top-bar search)
+    const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+    if (urlQuery !== prevUrlQuery) {
+        setPrevUrlQuery(urlQuery);
+        setQuery(urlQuery);
+    }
 
     const filtered = useMemo(() => {
         let list = products;
@@ -87,13 +99,29 @@ export default function AdminProductsPage() {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        const price = Number(form.price);
+        const stock = Number(form.stock);
+
+        if (price <= 0) {
+            toast.error("Invalid price", "Please enter a price greater than 0.");
+            return;
+        }
+        if (stock < 0) {
+            toast.error("Invalid stock", "Stock cannot be negative.");
+            return;
+        }
+        if (!form.name.trim()) {
+            toast.error("Missing name", "Please give the product a name.");
+            return;
+        }
+
         const payload = {
             name: form.name.trim(),
             categoryId: form.categoryId,
             description: form.description.trim(),
             image: form.image,
-            price: Number(form.price),
-            stock: Number(form.stock),
+            price,
+            stock,
             isPremium: form.isPremium,
             sku: form.sku.trim() || `SKU-${Date.now()}`,
             tags: form.tags
@@ -104,8 +132,10 @@ export default function AdminProductsPage() {
 
         if (editing) {
             updateProduct(editing.id, payload);
+            toast.success("Product updated", payload.name);
         } else {
             addProduct(payload);
+            toast.success("Product created", `${payload.name} is now live in your store.`);
         }
         setShowForm(false);
         setEditing(null);
@@ -113,8 +143,10 @@ export default function AdminProductsPage() {
     }
 
     function handleDelete(id: string) {
+        const target = products.find((p) => p.id === id);
         deleteProduct(id);
         setDeleteConfirm(null);
+        toast.success("Product deleted", target?.name ?? "Removed from your store.");
     }
 
     return (
@@ -185,10 +217,11 @@ export default function AdminProductsPage() {
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
+                                                    <SafeImage
                                                         src={p.image}
                                                         alt={p.name}
+                                                        fill
+                                                        sizes="40px"
                                                         className="h-full w-full object-cover"
                                                     />
                                                 </div>
@@ -474,5 +507,13 @@ export default function AdminProductsPage() {
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function AdminProductsPage() {
+    return (
+        <Suspense>
+            <AdminProductsPageInner />
+        </Suspense>
     );
 }

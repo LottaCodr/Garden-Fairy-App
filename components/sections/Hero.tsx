@@ -1,5 +1,9 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Leaf, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -23,6 +27,15 @@ const itemVariants = {
 };
 
 export function Hero() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    const q = query.trim();
+    router.push(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
+  }
+
   return (
     <section
       className="relative min-h-[85vh] flex items-center overflow-hidden bg-background"
@@ -80,7 +93,8 @@ export function Hero() {
             </motion.p>
 
             {/* Search */}
-            <motion.div
+            <motion.form
+              onSubmit={handleSearch}
               className="flex flex-col sm:flex-row gap-3 max-w-lg"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -90,15 +104,17 @@ export function Hero() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search plants, care tips, collections..."
                   className="w-full h-12 pl-12 pr-4 rounded-xl border border-border bg-card text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
-              <Button size="lg" className="h-12 px-6">
+              <Button type="submit" size="lg" className="h-12 px-6">
                 <Search className="mr-2 h-4 w-4" />
                 Search
               </Button>
-            </motion.div>
+            </motion.form>
 
             {/* CTA Buttons */}
             <motion.div
@@ -107,20 +123,24 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <Button
-                size="lg"
-                className="h-12 px-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
-              >
-                Shop Plants
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 px-8 rounded-xl border-border hover:border-primary hover:text-primary"
-              >
-                Explore Collections
-              </Button>
+              <Link href="/shop">
+                <Button
+                  size="lg"
+                  className="h-12 px-8 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
+                >
+                  Shop Plants
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/shop?category=garden">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-12 px-8 rounded-xl border-border hover:border-primary hover:text-primary"
+                >
+                  Explore Collections
+                </Button>
+              </Link>
             </motion.div>
 
             {/* Trust indicators */}
@@ -162,13 +182,32 @@ export function Hero() {
               className="relative"
             >
               <div className="relative rounded-2xl overflow-hidden shadow-xl shadow-primary/10 ring-1 ring-border">
-                <img
-                  src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&q=80"
+                <Image
+                  src="/images/hero.jpg"
                   alt="Beautiful indoor plants collection"
+                  width={800}
+                  height={1000}
+                  priority
                   className="w-full h-[500px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
               </div>
+
+              {/* Floating card */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9, duration: 0.6 }}
+                className="absolute -bottom-6 -left-8 flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-5 py-4 shadow-lg backdrop-blur"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Leaf className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-foreground">10,000+ happy homes</p>
+                  <p className="text-xs text-muted-foreground">thriving with our plants</p>
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>

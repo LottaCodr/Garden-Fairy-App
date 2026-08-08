@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,12 +18,19 @@ import {
     ChevronRight,
     Loader2,
     BarChart3,
+    AlertTriangle,
+    PackagePlus,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { useAdminStore } from "@/store/admin.store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 
@@ -41,13 +48,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
     const hydrated = useHydrated();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const user = useAuthStore((s) => s.user);
     const isAuthed = useAuthStore((s) => s.isAuthenticated);
     const signout = useAuthStore((s) => s.signout);
 
     const orders = useAdminStore((s) => s.orders);
-    const pendingOrders = orders.filter((o) => o.status === "pending").length;
+    const products = useAdminStore((s) => s.products);
+    const pendingOrders = orders.filter((o) => o.status === "pending");
+    const lowStockProducts = products.filter((p) => p.stock < 10);
 
     useEffect(() => {
         if (!hydrated) return;
@@ -81,11 +91,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return pathname === href || pathname.startsWith(href + "/");
     };
 
+    function handleSearch(e: FormEvent) {
+        e.preventDefault();
+        const q = searchQuery.trim();
+        if (!q) return;
+        router.push(`/admin/products?q=${encodeURIComponent(q)}`);
+        setSearchQuery("");
+    }
+
     return (
-        <div className="min-h-[calc(100vh-160px)] bg-muted/30">
+        <div className="min-h-[calc(100vh-var(--header-h))] bg-muted/30">
             <div className="flex">
                 {/* Sidebar (desktop) */}
-                <aside className="hidden md:flex sticky top-[57px] h-[calc(100vh-57px)] w-64 shrink-0 flex-col border-r border-border bg-card">
+                <aside className="hidden md:flex sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] w-64 shrink-0 flex-col border-r border-border bg-card">
                     <div className="px-4 py-5">
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Admin
@@ -107,9 +125,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.label}
-                                {item.href === "/admin/orders" && pendingOrders > 0 ? (
+                                {item.href === "/admin/orders" && pendingOrders.length > 0 ? (
                                     <Badge className="ml-auto" variant="secondary">
-                                        {pendingOrders}
+                                        {pendingOrders.length}
                                     </Badge>
                                 ) : null}
                             </Link>
@@ -188,6 +206,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         </Link>
                                     ))}
                                 </nav>
+                                <div className="border-t border-border p-4">
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-destructive hover:text-destructive"
+                                        onClick={() => {
+                                            signout();
+                                            router.push("/");
+                                        }}
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Sign out
+                                    </Button>
+                                </div>
                             </motion.aside>
                         </>
                     )}
@@ -196,7 +227,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* Main content */}
                 <div className="flex-1 min-w-0">
                     {/* Top bar */}
-                    <div className="sticky top-[57px] z-30 flex items-center gap-2 border-b border-border bg-background/95 backdrop-blur px-4 py-3 md:px-6">
+                    <div className="sticky top-[var(--header-h)] z-30 flex items-center gap-2 border-b border-border bg-background/95 backdrop-blur px-4 py-3 md:px-6">
                         <Button
                             size="icon"
                             variant="ghost"
@@ -210,19 +241,96 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Breadcrumb path={pathname} />
 
                         <div className="ml-auto flex items-center gap-2">
-                            <div className="hidden sm:flex relative">
+                            <form onSubmit={handleSearch} className="hidden sm:flex relative">
                                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
-                                    placeholder="Search..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search products…"
                                     className="h-9 w-48 pl-8 lg:w-64"
                                 />
-                            </div>
-                            <Button size="icon" variant="ghost" className="relative" aria-label="Notifications">
-                                <Bell className="h-4 w-4" />
-                                {pendingOrders > 0 ? (
-                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
-                                ) : null}
-                            </Button>
+                            </form>
+
+                            {/* Notifications */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="ghost" className="relative" aria-label="Notifications">
+                                        <Bell className="h-4 w-4" />
+                                        {pendingOrders.length > 0 || lowStockProducts.length > 0 ? (
+                                            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+                                        ) : null}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-80 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-lg p-2"
+                                >
+                                    <p className="px-3 py-2 text-sm font-semibold">
+                                        Notifications
+                                    </p>
+                                    <div className="max-h-72 overflow-y-auto space-y-1">
+                                        {pendingOrders.length === 0 &&
+                                        lowStockProducts.length === 0 ? (
+                                            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+                                                You&apos;re all caught up 🎉
+                                            </p>
+                                        ) : null}
+
+                                        {pendingOrders.slice(0, 4).map((o) => (
+                                            <button
+                                                key={o.id}
+                                                onClick={() => {
+                                                    router.push("/admin/orders");
+                                                }}
+                                                className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                                            >
+                                                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-yellow-800">
+                                                    <ShoppingBag className="h-3.5 w-3.5" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block truncate text-sm font-medium">
+                                                        New order {o.id}
+                                                    </span>
+                                                    <span className="block text-xs text-muted-foreground">
+                                                        {o.customerName} · ₦{o.total.toLocaleString()}
+                                                    </span>
+                                                </span>
+                                            </button>
+                                        ))}
+
+                                        {lowStockProducts.slice(0, 4).map((p) => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => {
+                                                    router.push("/admin/products");
+                                                }}
+                                                className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                                            >
+                                                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-yellow-800">
+                                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block truncate text-sm font-medium">
+                                                        Low stock: {p.name}
+                                                    </span>
+                                                    <span className="block text-xs text-muted-foreground">
+                                                        Only {p.stock} left
+                                                    </span>
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-border p-1.5">
+                                        <Link
+                                            href="/admin/orders"
+                                            className="flex items-center justify-center gap-1 rounded-md px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/5"
+                                        >
+                                            <PackagePlus className="h-3.5 w-3.5" />
+                                            Manage orders
+                                        </Link>
+                                    </div>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
 

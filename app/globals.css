@@ -540,3 +540,34 @@
     display: block;
   }
 }
+
+/* ----------------------------------------
+   Header height (driven by JS so sticky
+   offsets stay in sync with the compact
+   header on scroll)
+---------------------------------------- */
+:root {
+  --header-h: 4rem; /* 64px */
+}
+@media (min-width: 768px) {
+  :root {
+    --header-h: 5rem; /* 80px */
+  }
+}
+:root[data-header-compact="true"] {
+  --header-h: 3.5rem; /* 56px */
+}
+@media (min-width: 768px) {
+  :root[data-header-compact="true"] {
+    --header-h: 4rem; /* 64px */
+  }
+}
+
+/* Hide scrollbars but keep scrollability */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

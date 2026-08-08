@@ -1,13 +1,24 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAdminStore } from "@/store/admin.store";
+import { SafeImage } from "@/components/custom/SafeImage";
+import { cn } from "@/lib/utils";
 
 export default function Recommendations({ currentId }: { currentId?: string }) {
     const products = useAdminStore((s) => s.products);
-    const recs = products.filter((p) => p.id !== currentId).slice(0, 4);
+    const current = products.find((p) => p.id === currentId);
+
+    const others = products.filter((p) => p.id !== currentId);
+    const sameCategory = current
+        ? others.filter((p) => p.categoryId === current.categoryId)
+        : [];
+    const rest = others.filter((p) => p.categoryId !== current?.categoryId);
+
+    const recs = [...sameCategory, ...rest].slice(0, 4);
+
+    if (recs.length === 0) return null;
 
     return (
         <section className="mt-24">
@@ -15,10 +26,10 @@ export default function Recommendations({ currentId }: { currentId?: string }) {
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
                 {recs.map((p) => (
                     <Link key={p.id} href={`/product/${p.id}`}>
-                        <Card className="group h-full cursor-pointer overflow-hidden">
+                        <Card className="group h-full cursor-pointer overflow-hidden transition-shadow hover:shadow-md">
                             <CardContent className="p-3">
                                 <div className="relative aspect-[4/5] overflow-hidden rounded-md">
-                                    <Image
+                                    <SafeImage
                                         src={p.image}
                                         alt={p.name}
                                         fill
@@ -27,9 +38,19 @@ export default function Recommendations({ currentId }: { currentId?: string }) {
                                     />
                                 </div>
                                 <p className="mt-3 truncate font-medium">{p.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                    ₦{p.price.toLocaleString()}
-                                </p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm text-muted-foreground">
+                                        ₦{p.price.toLocaleString()}
+                                    </p>
+                                    <span
+                                        className={cn(
+                                            "text-[10px] font-medium",
+                                            p.stock <= 0 ? "text-destructive" : "text-primary"
+                                        )}
+                                    >
+                                        {p.stock <= 0 ? "Out of stock" : `${p.stock} left`}
+                                    </span>
+                                </div>
                             </CardContent>
                         </Card>
                     </Link>

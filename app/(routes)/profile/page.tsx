@@ -205,6 +205,9 @@ export default function ProfilePage() {
                                                 <img
                                                     src={o.items[0]?.image || product?.image}
                                                     alt={o.items[0]?.name}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = "/images/plants/1.jpg";
+                                                    }}
                                                     className="h-full w-full object-cover"
                                                 />
                                             </div>

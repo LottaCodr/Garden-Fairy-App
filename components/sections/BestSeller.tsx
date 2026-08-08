@@ -1,6 +1,7 @@
 "use client";
 
-import { products } from "@/lib/data/products";
+import Link from "next/link";
+import { useAdminStore } from "@/store/admin.store";
 import { ProductCard } from "../custom/ProductCard";
 import { ProductSkeleton } from "../custom/ProductSkeleton";
 import { ProductQuickView } from "../custom/ProductQuickView";
@@ -18,7 +19,11 @@ const fadeUp = {
 };
 
 export function BestSellers() {
-  const isLoading = false;
+  const products = useAdminStore((s) => s.products);
+  // Surface the highest rated, in-stock items as "bestsellers"
+  const bestsellers = [...products]
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(0, 8);
 
   return (
     <section className="py-20 bg-background">
@@ -45,22 +50,24 @@ export function BestSellers() {
             Plants our customers love the most - tried, tested, and thriving in
             homes everywhere.
           </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-4 rounded-full border-dashed border-border hover:border-primary"
-          >
-            View All Plants
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href="/shop" className="inline-block mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full border-dashed border-border hover:border-primary"
+            >
+              View All Plants
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </motion.div>
 
         {/* Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {isLoading ? (
+          {bestsellers.length === 0 ? (
             [...Array(4)].map((_, idx) => <ProductSkeleton key={idx} />)
           ) : (
-            products.map((product, index) => (
+            bestsellers.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial="hidden"

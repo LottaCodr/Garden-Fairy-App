@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, ShoppingBag, LogOut, LayoutDashboard, Search, Leaf } from "lucide-react";
+import { Menu, ShoppingBag, LogOut, LayoutDashboard, Search, Leaf, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,10 @@ import { useScrollHeader } from "@/lib/hooks/useScrollheader";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useAuthStore } from "@/store/auth.store";
 import { useCartStore } from "@/store/cart.store";
+import { useWishlistStore } from "@/store/wishlist.store";
+import { useUIStore } from "@/store/ui.store";
 import { CartDropdown } from "../custom/CartDropdown";
+import { useEffect } from "react";
 
 const navLinks: { label: string; href: string; roles: Array<"user" | "admin"> }[] = [
   { label: "Shop", href: "/shop", roles: ["user", "admin"] },
@@ -30,6 +33,17 @@ export function Header() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const signout = useAuthStore((s) => s.signout);
   const cartCount = useCartStore((s) => s.count());
+  const wishlistCount = useWishlistStore((s) => s.ids.length);
+  const openSearch = useUIStore((s) => s.openSearch);
+
+  // keep the sticky offsets of child layouts (e.g. admin) in sync with the
+  // header height via a CSS variable
+  useEffect(() => {
+    const root = document.documentElement;
+    if (compact) root.setAttribute("data-header-compact", "true");
+    else root.removeAttribute("data-header-compact");
+    return () => root.removeAttribute("data-header-compact");
+  }, [compact]);
 
   // avoid SSR hydration mismatch with persisted store
   const hydrated = useHydrated();
@@ -52,7 +66,11 @@ export function Header() {
       transition={{ duration: 0.5 }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 md:h-20 items-center justify-between">
+        <div
+          className={`flex items-center justify-between transition-[height] duration-300 ${
+            compact ? "h-14 md:h-16" : "h-16 md:h-20"
+          }`}
+        >
           {/* Logo */}
           <Link
             href="/"
@@ -93,15 +111,33 @@ export function Header() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Search */}
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={openSearch}
+              aria-label="Search products (⌘K)"
             >
               <Search className="h-4 w-4" />
             </Button>
+
+            {/* Wishlist */}
+            <Link href="/wishlist" aria-label="Wishlist">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-muted-foreground hover:text-foreground"
+              >
+                <Heart className="h-4 w-4" />
+                {hydrated && wishlistCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
 
             {/* Auth State */}
             {hydrated && !isAuthenticated ? (
@@ -266,6 +302,25 @@ export function Header() {
                           className="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
                         >
                           {cartCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </Link>
+
+                  {/* Wishlist Link */}
+                  <Link href="/wishlist">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-3 rounded-lg"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Wishlist
+                      {wishlistCount > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+                        >
+                          {wishlistCount}
                         </Badge>
                       )}
                     </Button>

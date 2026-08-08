@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,37 +7,127 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Minus, Plus, Truck, ShieldCheck, RotateCcw, Star } from "lucide-react";
+import {
+    Minus,
+    Plus,
+    Truck,
+    ShieldCheck,
+    RotateCcw,
+    Star,
+    ShoppingCart,
+    PackageSearch,
+} from "lucide-react";
 import Recommendations from "./recommendations";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCartStore } from "@/store/cart.store";
 import { useAdminStore } from "@/store/admin.store";
-import type { Product } from "@/lib/data/products";
+import { products as seedProducts } from "@/lib/data/products";
+import { toast } from "@/store/toast.store";
+import { SafeImage } from "@/components/custom/SafeImage";
 
-const FALLBACK_IMAGES = ["/images/plants/1.jpg", "/images/plants/2.jpg", "/images/plants/3.jpg", "/images/plants/4.jpg"];
+const FALLBACK_IMAGES = [
+    "/images/plants/1.jpg",
+    "/images/plants/2.jpg",
+    "/images/plants/3.jpg",
+    "/images/plants/4.jpg",
+];
 
-export default function ProductDetailPage({ product }: { product: Product }) {
-    const products = useAdminStore((s) => s.products);
+const CITIES: Record<string, { areas: string[]; fee: number; eta: string }> = {
+    Lagos: {
+        areas: ["Lekki", "Victoria Island", "Ikeja", "Yaba", "Surulere", "Ajah"],
+        fee: 3500,
+        eta: "1–2 days",
+    },
+    Abuja: {
+        areas: ["Wuse", "Garki", "Maitama", "Gwarinpa"],
+        fee: 4000,
+        eta: "2–3 days",
+    },
+    "Port Harcourt": {
+        areas: ["GRA", "Trans Amadi", "Rumuola"],
+        fee: 4500,
+        eta: "2–4 days",
+    },
+    Ibadan: {
+        areas: ["Bodija", "Ring Road", "Agodi"],
+        fee: 4000,
+        eta: "2–3 days",
+    },
+};
+
+export default function ProductDetailPage({ productId }: { productId: string }) {
+    const adminProducts = useAdminStore((s) => s.products);
     const addItem = useCartStore((s) => s.addItem);
+    const decrementItem = useCartStore((s) => s.decrementItem);
     const items = useCartStore((s) => s.items);
 
-    const images = [product.image, ...FALLBACK_IMAGES.filter((i) => i !== product.image)].slice(0, 4);
-    const [activeImage, setActiveImage] = useState(images[0]);
-    const [selectedSize, setSelectedSize] = useState<"small" | "medium" | "large">("medium");
-    const cartItem = items.find((i) => i.id === product.id);
-    const quantity = cartItem?.quantity ?? 0;
+    const product = useMemo(
+        () =>
+            adminProducts.find((p) => p.id === productId) ??
+            seedProducts.find((p) => p.id === productId) ??
+            null,
+        [adminProducts, productId]
+    );
 
-    const live = products.find((p) => p.id === product.id);
-    const stock = live?.stock ?? 0;
+    const [activeImage, setActiveImage] = useState(0);
+    const [selectedSize, setSelectedSize] = useState<"small" | "medium" | "large">("medium");
+    const [state, setState] = useState("Lagos");
+    const [area, setArea] = useState(CITIES.Lagos.areas[0]);
+
+    if (!product) {
+        return (
+            <main className="mx-auto max-w-3xl px-4 py-24 text-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <PackageSearch className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h1 className="text-2xl font-black tracking-tight">Product not found</h1>
+                    <p className="max-w-sm text-sm text-muted-foreground">
+                        We couldn&apos;t find that product. It may have been removed or the
+                        link may be incorrect.
+                    </p>
+                    <Link href="/shop">
+                        <Button>
+                            Browse the shop
+                            <ShoppingCart className="ml-2 h-4 w-4" />
+                        </Button>
+                    </Link>
+                </div>
+            </main>
+        );
+    }
+
+    const p = product; // narrowed reference for closures
+
+    const cartItem = items.find((i) => i.id === p.id);
+    const quantity = cartItem?.quantity ?? 0;
+    const stock = p.stock;
+    const outOfStock = stock <= 0;
+
+    const images = [p.image, ...FALLBACK_IMAGES.filter((i) => i !== p.image)].slice(0, 4);
+
+    const city = CITIES[state] ?? CITIES.Lagos;
+    const deliveryFee = city.fee;
+    const deliveryEta = city.eta;
+
+    function handleAdd() {
+        addItem({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            image: p.image,
+        });
+        toast.success("Added to cart", `${p.name} · ₦${p.price.toLocaleString()}`);
+    }
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-10">
             {/* Breadcrumbs */}
-            <nav className="mb-8 text-sm text-muted-foreground">
+            <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
                 <Link href="/" className="hover:text-primary">Home</Link> /{" "}
                 <Link href="/shop" className="hover:text-primary">Shop</Link> /{" "}
-                <span className="text-foreground">{product.name}</span>
+                <span className="text-foreground">{p.name}</span>
             </nav>
 
             <section className="grid gap-12 lg:grid-cols-2">
@@ -52,9 +141,9 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                 >
                     <Card className="overflow-hidden">
                         <div className="relative aspect-square w-full">
-                            <Image
-                                src={activeImage}
-                                alt={product.name}
+                            <SafeImage
+                                src={images[activeImage]}
+                                alt={p.name}
                                 fill
                                 sizes="(min-width: 1024px) 50vw, 100vw"
                                 className="object-cover"
@@ -68,19 +157,19 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                     <div className="grid grid-cols-4 gap-3">
                         {images.map((src, i) => (
                             <Card
-                                onClick={() => setActiveImage(src)}
+                                onClick={() => setActiveImage(i)}
                                 key={src + i}
                                 className={cn(
                                     "cursor-pointer overflow-hidden transition-all",
-                                    activeImage === src
+                                    activeImage === i
                                         ? "ring-2 ring-primary"
                                         : "border-muted hover:border-primary"
                                 )}
                             >
                                 <div className="relative aspect-square w-full">
-                                    <Image
+                                    <SafeImage
                                         src={src}
-                                        alt={`${product.name} thumbnail ${i + 1}`}
+                                        alt={`${p.name} thumbnail ${i + 1}`}
                                         fill
                                         sizes="120px"
                                         className="object-cover"
@@ -107,7 +196,7 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                             ))}
                         </div>
                         <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-                            {product.name}
+                            {p.name}
                         </h1>
                         <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-0.5 text-accent">
@@ -123,8 +212,8 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                             </div>
                             <span>(124 reviews)</span>
                             <span>·</span>
-                            <span className={cn(stock > 0 ? "text-primary" : "text-destructive")}>
-                                {stock > 0 ? `${stock} in stock` : "Out of stock"}
+                            <span className={cn(outOfStock ? "text-destructive" : "text-primary")}>
+                                {outOfStock ? "Out of stock" : `${stock} in stock`}
                             </span>
                         </div>
                     </div>
@@ -156,13 +245,10 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                                 size="icon"
                                 disabled={quantity === 0}
                                 onClick={() => {
-                                    if (quantity > 1) {
-                                        addItem({
-                                            id: product.id,
-                                            name: product.name,
-                                            price: product.price,
-                                            image: product.image,
-                                        });
+                                    const wasLast = quantity === 1;
+                                    decrementItem(p.id);
+                                    if (wasLast) {
+                                        toast.info("Removed from cart", p.name);
                                     }
                                 }}
                                 aria-label="Decrease quantity"
@@ -175,14 +261,8 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() =>
-                                    addItem({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        image: product.image,
-                                    })
-                                }
+                                disabled={outOfStock || quantity >= stock}
+                                onClick={handleAdd}
                                 aria-label="Increase quantity"
                             >
                                 <Plus />
@@ -191,40 +271,52 @@ export default function ProductDetailPage({ product }: { product: Product }) {
                         <Button
                             size="lg"
                             className="flex-1 min-w-[180px]"
-                            onClick={() =>
-                                addItem({
-                                    id: product.id,
-                                    name: product.name,
-                                    price: product.price,
-                                    image: product.image,
-                                })
-                            }
-                            disabled={stock === 0}
+                            onClick={handleAdd}
+                            disabled={outOfStock}
                         >
-                            {stock === 0 ? "Out of stock" : "Add to Cart"}
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            {outOfStock ? "Out of stock" : "Add to Cart"}
                         </Button>
                     </div>
+                    {quantity > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            {quantity} in your cart ·{" "}
+                            <Link href="/cart" className="font-medium text-primary hover:underline">
+                                view cart
+                            </Link>
+                        </p>
+                    )}
 
                     {/* Delivery */}
                     <Card>
                         <CardContent className="space-y-3 pt-6">
                             <p className="font-semibold">Estimate Your Delivery</p>
                             <div className="grid grid-cols-2 gap-3 text-foreground">
-                                <select className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                    <option>Lagos</option>
-                                    <option>Abuja</option>
-                                    <option>Port Harcourt</option>
-                                    <option>Ibadan</option>
+                                <select
+                                    value={state}
+                                    onChange={(e) => {
+                                        const next = e.target.value;
+                                        setState(next);
+                                        setArea(CITIES[next]?.areas[0] ?? "");
+                                    }}
+                                    className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                >
+                                    {Object.keys(CITIES).map((s) => (
+                                        <option key={s}>{s}</option>
+                                    ))}
                                 </select>
-                                <select className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                    <option>Lekki</option>
-                                    <option>Victoria Island</option>
-                                    <option>Ikeja</option>
-                                    <option>Yaba</option>
+                                <select
+                                    value={area}
+                                    onChange={(e) => setArea(e.target.value)}
+                                    className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                >
+                                    {city.areas.map((a) => (
+                                        <option key={a}>{a}</option>
+                                    ))}
                                 </select>
                             </div>
                             <Badge variant="secondary" className="w-full justify-center py-2">
-                                Estimated Fee: ₦3,500 · 2-3 days
+                                Estimated Fee: ₦{deliveryFee.toLocaleString()} · {deliveryEta}
                             </Badge>
                         </CardContent>
                     </Card>
@@ -268,7 +360,7 @@ export default function ProductDetailPage({ product }: { product: Product }) {
             </section>
 
             {/* Recommendations */}
-            <Recommendations currentId={product.id} />
+            <Recommendations currentId={p.id} />
         </main>
     );
 }
