@@ -13,11 +13,11 @@ export const products: Product[] = [
     {
         id: "p1",
         name: "Monstera Deliciosa",
-        categoryId: "indoor",
+        categoryId: "garden",
         description:
             "A stunning tropical plant popular for its split leaves and air-purifying abilities. Thrives in bright, indirect light.",
         image: "/images/plants/5.jpg",
-        tags: ["indoor", "tropical", "air-purifying"],
+        tags: ["garden", "tropical", "air-purifying"],
         isPremium: false,
         price: 7500,
     },
@@ -53,5 +53,27 @@ export const products: Product[] = [
         tags: ["garden", "outdoor", "planning"],
         isPremium: false,
         price: 8500,
+    },
+    {
+        id: "p5",
+        name: "Snake Plant",
+        categoryId: "garden",
+        description:
+            "A nearly indestructible indoor plant that filters air and tolerates low light. Perfect for first-time plant owners.",
+        image: "/images/plants/1.jpg",
+        tags: ["garden", "low-light", "air-purifying"],
+        isPremium: false,
+        price: 4500,
+    },
+    {
+        id: "p6",
+        name: "Personal Wardrobe Stylist",
+        categoryId: "fashion",
+        description:
+            "Get endless outfit combinations from the clothes you already own, with AI-powered styling tailored to your vibe.",
+        image: "/images/plants/6.jpg",
+        tags: ["fashion", "styling", "ai"],
+        isPremium: true,
+        price: 6800,
     },
 ];

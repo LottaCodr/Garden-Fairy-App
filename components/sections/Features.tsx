@@ -1,10 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { features } from "@/lib/data/features"
 
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: {},
     show: {
         transition: {
@@ -13,7 +13,7 @@ const containerVariants = {
     },
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: {
         opacity: 0,
         y: 16,
@@ -62,7 +62,7 @@ export function Features() {
                 className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
             >
                 {features.map(({ icon: Icon, title, description }) => (
-                    <motion.div key={title} variants={itemVariants as any}>
+                    <motion.div key={title} variants={itemVariants}>
                         <Card className="border-muted text-center transition-shadow hover:shadow-md">
                             <CardContent className="flex flex-col items-center gap-3 p-6">
                                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary">
