@@ -11,9 +11,12 @@ import {
   MapPin,
   Phone,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "@/store/toast.store";
+import { useSettingsStore } from "@/store/settings.store";
+import { api, ApiError } from "@/lib/api";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -23,9 +26,9 @@ const fadeUp = {
 const footerLinks = {
   Shop: [
     { label: "All Plants", href: "/shop" },
-    { label: "Garden & Outdoor", href: "/shop?category=garden" },
-    { label: "Interior Design", href: "/shop?category=interior" },
-    { label: "Workspace", href: "/shop?category=workspace" },
+    { label: "Garden & Outdoor", href: "/shop" },
+    { label: "Interior Design", href: "/shop" },
+    { label: "Workspace", href: "/shop" },
   ],
   Support: [
     { label: "Contact Us", href: "/contact" },
@@ -49,19 +52,54 @@ const socials = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+  const settings = useSettingsStore((s) => s.settings);
 
-  function handleSubscribe(e: FormEvent) {
+  const [email, setEmail] = useState("");
+  const [lastEmail, setLastEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubscribe(e: FormEvent) {
     e.preventDefault();
     const value = email.trim();
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    setSubscribed(true);
-    setEmail("");
-    toast.success("Subscribed!", "You're on the list — watch your inbox for fresh arrivals.");
+
+    setLoading(true);
+    try {
+      const res = await api<{ message?: string }>("/newsletter/subscribe", {
+        method: "POST",
+        json: { email: value },
+      });
+      setSubscribed(true);
+      setLastEmail(value);
+      setEmail("");
+      toast.success("Subscribed!", res?.message || "You're on the list — watch your inbox for fresh arrivals.");
+    } catch (err: unknown) {
+      const msg = err instanceof ApiError ? err.message : "Failed to subscribe";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleUnsubscribe() {
+    if (!lastEmail) {
+      setSubscribed(false);
+      return;
+    }
+    try {
+      await api("/newsletter/unsubscribe", {
+        method: "POST",
+        json: { email: lastEmail },
+      });
+      setSubscribed(false);
+      toast.info("Unsubscribed from newsletter");
+    } catch {
+      setSubscribed(false);
+    }
   }
 
   return (
@@ -76,10 +114,7 @@ export function Footer() {
       <div className="container-2xl py-16">
         <div className="grid gap-12 lg:grid-cols-5">
           {/* Brand Column */}
-          <motion.div
-            className="lg:col-span-2"
-            variants={fadeUp}
-          >
+          <motion.div className="lg:col-span-2" variants={fadeUp}>
             <Link
               href="/"
               className="inline-flex items-center gap-3 text-2xl font-bold text-white"
@@ -88,7 +123,7 @@ export function Footer() {
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary text-lg">
                 <Leaf className="h-5 w-5" />
               </span>
-              The Garden Fairy
+              {settings?.storeName || "The Garden Fairy"}
             </Link>
             <p className="mt-4 text-sm text-background/70 max-w-xs leading-relaxed">
               Bringing nature to your doorstep with handpicked plants, expert
@@ -98,18 +133,18 @@ export function Footer() {
             {/* Contact Info */}
             <div className="mt-6 flex flex-col gap-3 text-sm">
               <a
-                href="mailto:hello@gardenfairy.com"
+                href={`mailto:${settings?.supportEmail || "hello@gardenfairy.com"}`}
                 className="inline-flex items-center gap-2 text-background/70 hover:text-white transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                hello@gardenfairy.com
+                {settings?.supportEmail || "hello@gardenfairy.com"}
               </a>
               <a
-                href="tel:+2341234567890"
+                href={`tel:${settings?.phone || "+2341234567890"}`}
                 className="inline-flex items-center gap-2 text-background/70 hover:text-white transition-colors"
               >
                 <Phone className="h-4 w-4" />
-                +234 123 456 7890
+                {settings?.phone || "+234 123 456 7890"}
               </a>
               <div className="inline-flex items-center gap-2 text-background/70">
                 <MapPin className="h-4 w-4" />
@@ -135,10 +170,7 @@ export function Footer() {
           </motion.div>
 
           {/* Shop Links */}
-          <motion.div
-            variants={fadeUp}
-            transition={{ delay: 0.1 }}
-          >
+          <motion.div variants={fadeUp} transition={{ delay: 0.1 }}>
             <h4 className="text-sm font-semibold text-white mb-4">Shop</h4>
             <ul className="space-y-3">
               {footerLinks.Shop.map((link) => (
@@ -156,10 +188,7 @@ export function Footer() {
           </motion.div>
 
           {/* Support Links */}
-          <motion.div
-            variants={fadeUp}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div variants={fadeUp} transition={{ delay: 0.2 }}>
             <h4 className="text-sm font-semibold text-white mb-4">Support</h4>
             <ul className="space-y-3">
               {footerLinks.Support.map((link) => (
@@ -177,10 +206,7 @@ export function Footer() {
           </motion.div>
 
           {/* Company Links */}
-          <motion.div
-            variants={fadeUp}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.div variants={fadeUp} transition={{ delay: 0.3 }}>
             <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
             <ul className="space-y-3">
               {footerLinks.Company.map((link) => (
@@ -217,8 +243,8 @@ export function Footer() {
                 <span>
                   You&apos;re subscribed!{" "}
                   <button
-                    onClick={() => setSubscribed(false)}
-                    className="ml-1 text-background/60 underline-offset-2 hover:text-white hover:underline"
+                    onClick={handleUnsubscribe}
+                    className="ml-1 text-background/60 underline-offset-2 hover:text-white hover:underline cursor-pointer"
                   >
                     Undo
                   </button>
@@ -233,6 +259,7 @@ export function Footer() {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-background/50" />
                   <input
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
@@ -241,9 +268,10 @@ export function Footer() {
                 </div>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
                 >
-                  Subscribe
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Subscribe"}
                 </button>
               </form>
             )}
@@ -255,7 +283,7 @@ export function Footer() {
       <div className="border-t border-background/10">
         <div className="container-2xl py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-background/50">
-            © {currentYear} The Garden Fairy. All rights reserved.
+            © {currentYear} {settings?.storeName || "The Garden Fairy"}. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs text-background/50">
             <Link href="/about" className="hover:text-white transition-colors">

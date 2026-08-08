@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/custom/Toaster";
 import { SearchDialog } from "@/components/custom/SearchDialog";
+import { AppBootstrap } from "@/components/providers/AppBootstrap";
 
 export const metadata: Metadata = {
   title: {
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans bg-background text-foreground antialiased">
+        <AppBootstrap />
         <Header />
         {children}
         <Footer />

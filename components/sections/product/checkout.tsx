@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-    Loader2,
-    Truck,
-    ShieldCheck,
-    CreditCard,
-    CheckCircle2,
-    ArrowLeft,
-    Lock,
+  Loader2,
+  Truck,
+  ShieldCheck,
+  CreditCard,
+  ArrowLeft,
+  MapPin,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,476 +17,475 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart.store";
-import { useAdminStore } from "@/store/admin.store";
 import { useAuthStore } from "@/store/auth.store";
+import { useSettingsStore } from "@/store/settings.store";
+import { toast } from "@/store/toast.store";
+import { api, ApiError } from "@/lib/api";
+import type { CheckoutResult, DeliveryQuote, Address } from "@/types/api";
+import { cn } from "@/lib/utils";
 import EmptyCart from "./empty.card";
 
 const NIGERIAN_STATES = [
-    "Lagos", "Abuja (FCT)", "Ogun", "Oyo", "Rivers", "Kano", "Kaduna",
-    "Enugu", "Anambra", "Delta", "Edo", "Imo", "Abia", "Plateau", "Borno",
+  "Lagos",
+  "Abuja (FCT)",
+  "Ogun",
+  "Oyo",
+  "Rivers",
+  "Kano",
+  "Kaduna",
+  "Enugu",
+  "Anambra",
+  "Delta",
+  "Edo",
+  "Imo",
+  "Abia",
+  "Plateau",
+  "Borno",
 ];
 
 export default function CheckoutPageComponent() {
-    const router = useRouter();
-    const items = useCartStore((s) => s.items);
-    const subTotal = useCartStore((s) => s.subTotal());
-    const clearCart = useCartStore((s) => s.clearCart);
-    const addOrder = useAdminStore((s) => s.addOrder);
-    const user = useAuthStore((s) => s.user);
-    const isAuthed = useAuthStore((s) => s.isAuthenticated);
+  const router = useRouter();
+  const items = useCartStore((s) => s.items);
+  const subTotal = useCartStore((s) => s.subTotal());
+  const refetchCart = useCartStore((s) => s.fetch);
 
-    const [step, setStep] = useState<"shipping" | "payment" | "success">("shipping");
-    const [loading, setLoading] = useState(false);
-    const [orderId, setOrderId] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const settings = useSettingsStore((s) => s.settings);
 
-    const updateProduct = useAdminStore((s) => s.updateProduct);
-    const adminProducts = useAdminStore((s) => s.products);
+  const [loading, setLoading] = useState(false);
+  const [estimate, setEstimate] = useState<DeliveryQuote | null>(null);
+  const [estimateLoading, setEstimateLoading] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("custom");
 
-    const [form, setForm] = useState({
-        name: user?.name || "",
-        email: user?.email || "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "Lagos",
-        notes: "",
-        // payment
-        cardName: "",
-        cardNumber: "",
-        expiry: "",
-        cvv: "",
-    });
+  // Idempotency key generated per checkout attempt and regenerated if cart changes
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
 
-    useEffect(() => {
-        if (!isAuthed) {
-            router.replace("/signin?redirect=/checkout");
-        }
-    }, [isAuthed, router]);
+  useEffect(() => {
+    // Regenerate idempotency key when cart items or subtotal change
+    setIdempotencyKey(crypto.randomUUID());
+  }, [items.length, subTotal]);
 
-    useEffect(() => {
-        if (user) {
-            setForm((f) => ({
-                ...f,
-                name: f.name || user.name,
-                email: f.email || user.email,
-            }));
-        }
-        // intentionally depend on user.id only to avoid cascading re-renders
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.id]);
+  const defaultAddr = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
 
-    const deliveryFee = subTotal >= 50000 ? 0 : 3500;
-    const total = subTotal + deliveryFee;
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    street: defaultAddr?.street || "",
+    city: defaultAddr?.city || "Ikeja",
+    state: defaultAddr?.state || "Lagos",
+    notes: "",
+  });
 
-    if (items.length === 0 && step !== "success") {
-        return <EmptyCart />;
+  // Prefill profile data when user loads
+  useEffect(() => {
+    if (user) {
+      const def = user.addresses?.find((a) => a.isDefault) || user.addresses?.[0];
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || user.phone || "",
+        street: prev.street || def?.street || "",
+        city: prev.city || def?.city || "Ikeja",
+        state: prev.state || def?.state || "Lagos",
+      }));
     }
+  }, [user]);
 
-    function goNext(e: FormEvent) {
-        e.preventDefault();
-        if (step === "shipping") {
-            setStep("payment");
-            return;
-        }
-        // step === "payment": place order
-        handlePlaceOrder();
-    }
+  // Handle saved address picker
+  const handleSelectSavedAddress = (addr: Address) => {
+    setSelectedAddressId(addr._id || "saved");
+    setForm((prev) => ({
+      ...prev,
+      street: addr.street,
+      city: addr.city,
+      state: addr.state,
+    }));
+  };
 
-    async function handlePlaceOrder() {
-        setLoading(true);
-        await new Promise((r) => setTimeout(r, 900));
-
-        const order = addOrder({
-            customerName: form.name,
-            customerEmail: form.email,
-            items: items.map((i) => ({
-                productId: i.id,
-                name: i.name,
-                price: i.price,
-                image: i.image,
-                quantity: i.quantity,
-            })),
-            subtotal: subTotal,
-            delivery: deliveryFee,
-            total,
-            shippingAddress: `${form.address}, ${form.city}, ${form.state}`,
+  // Fetch delivery estimate
+  const fetchDeliveryEstimate = useCallback(
+    async (st: string, ct: string, sub: number) => {
+      setEstimateLoading(true);
+      try {
+        const res = await api<{ data: DeliveryQuote }>("/checkout/estimate", {
+          method: "POST",
+          json: {
+            state: st,
+            city: ct,
+            subtotal: sub,
+          },
         });
-
-        // Decrement live stock so inventory stays consistent with sales
-        for (const i of items) {
-            const product = adminProducts.find((p) => p.id === i.id);
-            if (product) {
-                updateProduct(product.id, {
-                    stock: Math.max(0, product.stock - i.quantity),
-                });
-            }
+        if (res?.data) {
+          setEstimate(res.data);
         }
+      } catch {
+        // fallback
+        const free = sub >= (settings?.freeShippingThreshold ?? 50000);
+        setEstimate({
+          deliveryFee: free ? 0 : (settings?.deliveryFee ?? 3500),
+          etaDays: 2,
+          freeShippingApplied: free,
+          matchedArea: null,
+          currency: "NGN",
+        });
+      } finally {
+        setEstimateLoading(false);
+      }
+    },
+    [settings],
+  );
 
-        setOrderId(order.id);
-        clearCart();
-        setLoading(false);
-        setStep("success");
+  useEffect(() => {
+    if (form.state && subTotal > 0) {
+      const timer = setTimeout(() => {
+        void fetchDeliveryEstimate(form.state, form.city, subTotal);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [form.state, form.city, subTotal, fetchDeliveryEstimate]);
+
+  const deliveryFee = estimate?.deliveryFee ?? (subTotal >= (settings?.freeShippingThreshold ?? 50000) ? 0 : (settings?.deliveryFee ?? 3500));
+  const total = subTotal + deliveryFee;
+
+  if (items.length === 0) {
+    return <EmptyCart />;
+  }
+
+  async function handleCheckout(e: FormEvent) {
+    e.preventDefault();
+
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim() || !form.street.trim() || !form.city.trim()) {
+      toast.error("Please fill in all required shipping fields.");
+      return;
     }
 
-    return (
-        <main className="mx-auto max-w-6xl px-4 py-10">
-            {/* Stepper */}
-            <div className="mb-8 flex items-center justify-center gap-2 text-sm">
-                <StepBadge label="Shipping" active={step === "shipping"} done={step === "payment" || step === "success"} />
-                <Separator className="w-12" />
-                <StepBadge label="Payment" active={step === "payment"} done={step === "success"} />
-                <Separator className="w-12" />
-                <StepBadge label="Confirmation" active={step === "success"} done={false} />
-            </div>
+    setLoading(true);
 
-            <h1 className="mb-8 text-3xl font-black tracking-tight">Checkout</h1>
+    try {
+      // POST /api/checkout with Idempotency-Key
+      const payload = {
+        items: items.map((i) => ({
+          productId: i.product || i.id,
+          qty: i.qty,
+          size: i.size,
+        })),
+        shippingAddress: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          street: form.street.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+        },
+        notes: form.notes.trim() || undefined,
+      };
 
-            <div className="grid gap-8 lg:grid-cols-3">
-                {/* Form area */}
-                <div className="lg:col-span-2 space-y-6">
-                    <AnimatePresence mode="wait">
-                        {step === "shipping" && (
-                            <motion.form
-                                key="shipping"
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -8 }}
-                                onSubmit={goNext}
-                            >
-                                <Card>
-                                    <CardContent className="space-y-4 p-6">
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <Truck className="h-4 w-4 text-primary" />
-                                            <h2 className="font-semibold">Shipping details</h2>
-                                        </div>
+      const result = await api<CheckoutResult>("/checkout", {
+        method: "POST",
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+        json: payload,
+      });
 
-                                        <div className="grid gap-4 sm:grid-cols-2">
-                                            <Field
-                                                label="Full name"
-                                                value={form.name}
-                                                onChange={(v) => setForm({ ...form, name: v })}
-                                                required
-                                            />
-                                            <Field
-                                                label="Email"
-                                                type="email"
-                                                value={form.email}
-                                                onChange={(v) => setForm({ ...form, email: v })}
-                                                required
-                                            />
-                                            <Field
-                                                label="Phone"
-                                                value={form.phone}
-                                                onChange={(v) => setForm({ ...form, phone: v })}
-                                                required
-                                            />
-                                            <div className="space-y-2">
-                                                <label className="text-sm font-medium">State</label>
-                                                <select
-                                                    value={form.state}
-                                                    onChange={(e) => setForm({ ...form, state: e.target.value })}
-                                                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                                >
-                                                    {NIGERIAN_STATES.map((s) => (
-                                                        <option key={s}>{s}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <Field
-                                                label="City"
-                                                value={form.city}
-                                                onChange={(v) => setForm({ ...form, city: v })}
-                                                required
-                                            />
-                                            <Field
-                                                label="Street address"
-                                                value={form.address}
-                                                onChange={(v) => setForm({ ...form, address: v })}
-                                                required
-                                            />
-                                        </div>
+      // Refetch cart to reset badge (server cleared it)
+      await refetchCart();
 
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium">
-                                                Order notes (optional)
-                                            </label>
-                                            <textarea
-                                                value={form.notes}
-                                                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                                rows={3}
-                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                                placeholder="Delivery instructions, gate code, etc."
-                                            />
-                                        </div>
+      // If Flutterwave paymentLink returned, redirect browser
+      if (result?.paymentLink) {
+        window.location.assign(result.paymentLink);
+      } else {
+        // Development fallback or direct callback
+        router.push(`/payment/callback?tx_ref=${encodeURIComponent(result.txRef)}`);
+      }
+    } catch (err: unknown) {
+      setLoading(false);
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          toast.error("Cart conflict", err.message);
+          await refetchCart();
+        } else {
+          toast.error(err.message);
+        }
+      } else {
+        const msg = err instanceof Error ? err.message : "Failed to place order";
+        toast.error(msg);
+      }
+    }
+  }
 
-                                        <div className="flex items-center justify-between pt-2">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                onClick={() => router.push("/cart")}
-                                            >
-                                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                                Back to cart
-                                            </Button>
-                                            <Button type="submit">Continue to payment</Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.form>
-                        )}
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mb-8">
+        <p className="text-xs font-medium uppercase tracking-wider text-primary mb-1">
+          Checkout
+        </p>
+        <h1 className="text-3xl font-black tracking-tight">Shipping & Payment</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Complete your delivery details to proceed to secure payment.
+        </p>
+      </div>
 
-                        {step === "payment" && (
-                            <motion.form
-                                key="payment"
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -8 }}
-                                onSubmit={goNext}
-                            >
-                                <Card>
-                                    <CardContent className="space-y-4 p-6">
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <CreditCard className="h-4 w-4 text-primary" />
-                                            <h2 className="font-semibold">Payment</h2>
-                                            <Badge variant="secondary" className="ml-auto gap-1">
-                                                <Lock className="h-3 w-3" /> Demo
-                                            </Badge>
-                                        </div>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Form area */}
+        <div className="lg:col-span-2 space-y-6">
+          <form onSubmit={handleCheckout} className="space-y-6">
+            {/* Saved Addresses Picker (if logged in & has saved addresses) */}
+            {isAuthenticated && user?.addresses && user.addresses.length > 0 ? (
+              <Card>
+                <CardContent className="p-6 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <h2 className="font-semibold text-sm">Saved Addresses</h2>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {user.addresses.map((addr) => {
+                      const isSelected =
+                        selectedAddressId === addr._id ||
+                        (form.street === addr.street && form.city === addr.city);
+                      return (
+                        <div
+                          key={addr._id || `${addr.street}-${addr.city}`}
+                          onClick={() => handleSelectSavedAddress(addr)}
+                          className={cn(
+                            "cursor-pointer rounded-lg border p-3 text-xs transition-colors",
+                            isSelected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "border-border hover:border-primary/50",
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-foreground">
+                              {addr.label || "Address"}
+                            </span>
+                            {addr.isDefault && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground truncate">{addr.street}</p>
+                          <p className="text-muted-foreground">
+                            {addr.city}, {addr.state}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
 
-                                        <Field
-                                            label="Name on card"
-                                            value={form.cardName}
-                                            onChange={(v) => setForm({ ...form, cardName: v })}
-                                            required
-                                        />
-                                        <Field
-                                            label="Card number"
-                                            value={form.cardNumber}
-                                            onChange={(v) => setForm({ ...form, cardNumber: formatCardNumber(v) })}
-                                            placeholder="4242 4242 4242 4242"
-                                            maxLength={19}
-                                            required
-                                        />
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <Field
-                                                label="Expiry"
-                                                value={form.expiry}
-                                                onChange={(v) => setForm({ ...form, expiry: formatExpiry(v) })}
-                                                placeholder="MM/YY"
-                                                maxLength={5}
-                                                required
-                                            />
-                                            <Field
-                                                label="CVV"
-                                                value={form.cvv}
-                                                onChange={(v) => setForm({ ...form, cvv: v.replace(/\D/g, "").slice(0, 3) })}
-                                                placeholder="123"
-                                                maxLength={3}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
-                                            <ShieldCheck className="h-4 w-4 text-primary" />
-                                            Your card details are not stored. This is a demo checkout.
-                                        </div>
-
-                                        <div className="flex items-center justify-between pt-2">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                onClick={() => setStep("shipping")}
-                                            >
-                                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                                Back
-                                            </Button>
-                                            <Button type="submit" disabled={loading}>
-                                                {loading ? (
-                                                    <>
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                        Processing payment...
-                                                    </>
-                                                ) : (
-                                                    `Pay ₦${total.toLocaleString()}`
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.form>
-                        )}
-
-                        {step === "success" && (
-                            <motion.div
-                                key="success"
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <Card>
-                                    <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
-                                            <CheckCircle2 className="h-8 w-8 text-primary" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold">Thank you for your order!</h2>
-                                        <p className="max-w-md text-sm text-muted-foreground">
-                                            Your order has been placed successfully. A confirmation
-                                            email will be sent to <span className="font-medium">{form.email}</span>.
-                                        </p>
-                                        <div className="rounded-md border border-border bg-card/50 px-6 py-3">
-                                            <p className="text-xs text-muted-foreground">Order ID</p>
-                                            <p className="font-mono font-semibold">{orderId}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" onClick={() => router.push("/shop")}>
-                                                Continue shopping
-                                            </Button>
-                                            <Button onClick={() => router.push("/profile")}>
-                                                View my orders
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+            {/* Shipping Address Form */}
+            <Card>
+              <CardContent className="space-y-4 p-6">
+                <div className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-primary" />
+                  <h2 className="font-semibold text-sm">Shipping Information</h2>
                 </div>
 
-                {/* Order summary sidebar */}
-                {step !== "success" && (
-                    <aside className="lg:col-span-1">
-                        <Card className="sticky top-24">
-                            <CardContent className="space-y-4 p-6">
-                                <h2 className="font-semibold">Order summary</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium">Full name *</label>
+                    <Input
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Jane Doe"
+                    />
+                  </div>
 
-                                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                                    {items.map((i) => (
-                                        <div key={i.id} className="flex items-center gap-3">
-                                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
-                                                    src={i.image}
-                                                    alt={i.name}
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = "/images/plants/1.jpg";
-                                                    }}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="truncate text-sm font-medium">{i.name}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {i.quantity} × ₦{i.price.toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <p className="text-sm font-semibold">
-                                                ₦{(i.price * i.quantity).toLocaleString()}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium">Email address *</label>
+                    <Input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="you@example.com"
+                    />
+                  </div>
 
-                                <Separator />
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium">Phone number *</label>
+                    <Input
+                      required
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      placeholder="080 1234 5678"
+                    />
+                  </div>
 
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span>Subtotal</span>
-                                        <span>₦{subTotal.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Delivery</span>
-                                        <span>
-                                            {deliveryFee === 0 ? (
-                                                <span className="text-primary font-semibold">FREE</span>
-                                            ) : (
-                                                `₦${deliveryFee.toLocaleString()}`
-                                            )}
-                                        </span>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between text-base font-semibold">
-                                        <span>Total</span>
-                                        <span>₦{total.toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </aside>
-                )}
-            </div>
-        </main>
-    );
-}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium">State *</label>
+                    <select
+                      value={form.state}
+                      onChange={(e) => setForm({ ...form, state: e.target.value })}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      {NIGERIAN_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-function StepBadge({
-    label,
-    active,
-    done,
-}: {
-    label: string;
-    active: boolean;
-    done: boolean;
-}) {
-    return (
-        <div className="flex items-center gap-2">
-            <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
-                    done
-                        ? "bg-primary text-primary-foreground"
-                        : active
-                            ? "bg-primary/15 text-primary ring-2 ring-primary"
-                            : "bg-muted text-muted-foreground"
-                }`}
-            >
-                {done ? <CheckCircle2 className="h-4 w-4" /> : null}
-                {!done && active}
-                {!done && !active ? "·" : null}
-            </div>
-            <span className={active ? "font-semibold" : "text-muted-foreground"}>{label}</span>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium">City / Area *</label>
+                    <Input
+                      required
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      placeholder="Ikeja, Lekki, Wuse..."
+                    />
+                  </div>
+
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-medium">Street address *</label>
+                    <Input
+                      required
+                      value={form.street}
+                      onChange={(e) => setForm({ ...form, street: e.target.value })}
+                      placeholder="12 Garden Road, Floor 2"
+                    />
+                  </div>
+
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-medium">Order notes (optional)</label>
+                    <textarea
+                      rows={2}
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      placeholder="Special delivery instructions, gate code, etc."
+                      className="w-full rounded-md border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Info */}
+            <Card>
+              <CardContent className="space-y-4 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <h2 className="font-semibold text-sm">Payment Provider</h2>
+                  </div>
+                  <Badge variant="secondary" className="capitalize">
+                    {settings?.paymentProvider || "Flutterwave"}
+                  </Badge>
+                </div>
+
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center gap-2 font-medium text-foreground">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    Secure Hosted Checkout
+                  </div>
+                  <p>
+                    You will be directed to {settings?.paymentProvider === "paystack" ? "Paystack" : "Flutterwave"} to complete your payment with card, bank transfer, or USSD.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => router.push("/cart")}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to cart
+                  </Button>
+
+                  <Button type="submit" size="lg" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Initiating payment...
+                      </>
+                    ) : (
+                      `Pay ₦${total.toLocaleString()}`
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
         </div>
-    );
-}
 
-function Field({
-    label,
-    value,
-    onChange,
-    type = "text",
-    placeholder,
-    required,
-    maxLength,
-}: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    type?: string;
-    placeholder?: string;
-    required?: boolean;
-    maxLength?: number;
-}) {
-    return (
-        <div className="space-y-2">
-            <label className="text-sm font-medium">{label}</label>
-            <Input
-                type={type}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-                required={required}
-                maxLength={maxLength}
-            />
-        </div>
-    );
-}
+        {/* Order summary sidebar */}
+        <aside className="lg:col-span-1">
+          <Card className="sticky top-24">
+            <CardContent className="space-y-4 p-6">
+              <h2 className="font-semibold">Order Summary</h2>
 
-function formatCardNumber(v: string) {
-    return v
-        .replace(/\D/g, "")
-        .slice(0, 16)
-        .replace(/(\d{4})(?=\d)/g, "$1 ");
-}
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {items.map((i) => (
+                  <div key={i.id || i.product} className="flex items-center gap-3">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={i.image || "/images/plants/1.jpg"}
+                        alt={i.name}
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/plants/1.jpg";
+                        }}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-medium">{i.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {i.qty} × ₦{i.price.toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold">
+                      ₦{(i.lineTotal || i.price * i.qty).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
 
-function formatExpiry(v: string) {
-    const digits = v.replace(/\D/g, "").slice(0, 4);
-    if (digits.length <= 2) return digits;
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+              <Separator />
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>₦{subTotal.toLocaleString()}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Delivery</span>
+                  {estimateLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  ) : deliveryFee === 0 ? (
+                    <span className="text-primary font-semibold">FREE</span>
+                  ) : (
+                    <span>₦{deliveryFee.toLocaleString()}</span>
+                  )}
+                </div>
+
+                {estimate?.etaDays ? (
+                  <p className="text-[11px] text-muted-foreground text-right">
+                    Arrives in ~{estimate.etaDays} day{estimate.etaDays !== 1 ? "s" : ""}
+                  </p>
+                ) : null}
+
+                <Separator />
+
+                <div className="flex justify-between text-base font-semibold">
+                  <span>Total</span>
+                  <span>₦{total.toLocaleString()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
+    </main>
+  );
 }

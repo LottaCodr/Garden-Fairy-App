@@ -1,13 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAdminStore } from "@/store/admin.store";
 import { ProductCard } from "../custom/ProductCard";
 import { ProductSkeleton } from "../custom/ProductSkeleton";
 import { ProductQuickView } from "../custom/ProductQuickView";
 import { ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { api } from "@/lib/api";
+import type { Product, Paged } from "@/types/api";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -19,11 +21,33 @@ const fadeUp = {
 };
 
 export function BestSellers() {
-  const products = useAdminStore((s) => s.products);
-  // Surface the highest rated, in-stock items as "bestsellers"
-  const bestsellers = [...products]
-    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    .slice(0, 8);
+  const [bestsellers, setBestsellers] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    api<{ success?: boolean; data?: Product[] | Paged<Product> }>("/products?sort=popular&limit=8")
+      .then((res) => {
+        if (!mounted) return;
+        let list: Product[] = [];
+        if (Array.isArray(res?.data)) {
+          list = res.data;
+        } else if (res?.data && Array.isArray((res.data as Paged<Product>).data)) {
+          list = (res.data as Paged<Product>).data;
+        } else if (Array.isArray(res)) {
+          list = res;
+        }
+        setBestsellers(list);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <section className="py-20 bg-background">
@@ -64,12 +88,16 @@ export function BestSellers() {
 
         {/* Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {bestsellers.length === 0 ? (
+          {loading ? (
             [...Array(4)].map((_, idx) => <ProductSkeleton key={idx} />)
+          ) : bestsellers.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-sm text-muted-foreground">
+              No products available right now.
+            </div>
           ) : (
             bestsellers.map((product, index) => (
               <motion.div
-                key={product.id}
+                key={product._id || product.slug || index}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}

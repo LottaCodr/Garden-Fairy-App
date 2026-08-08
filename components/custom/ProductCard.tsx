@@ -10,59 +10,66 @@ import { Eye, Heart, ShoppingCart } from "lucide-react";
 import { useProductUI } from "@/store/useProductUI";
 import { toast } from "@/store/toast.store";
 import { SafeImage } from "./SafeImage";
-import type { Product } from "@/lib/data/products";
+import type { Product } from "@/types/api";
+import { getProductImage } from "@/lib/product-helpers";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
-  product: Product;
+  product: Product | (Partial<Product> & { id?: string; name: string; price: number });
   className?: string;
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const openQuickView = useProductUI((s) => s.openQuickView);
   const addItem = useCartStore((s) => s.addItem);
-  const wishlistIds = useWishlistStore((s) => s.ids);
-  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const wishlistStore = useWishlistStore();
 
-  const outOfStock = product.stock <= 0;
-  const isWishlisted = wishlistIds.includes(product.id);
+  const productId = product._id || (product as { id?: string }).id || "";
+  const productSlug = product.slug || productId;
+  const isWishlisted = wishlistStore.has(productId);
+
+  const stock = typeof product.stock === "number" ? product.stock : 10;
+  const outOfStock = stock <= 0;
+  const tags = Array.isArray(product.tags) ? product.tags : [];
+  const image = getProductImage(product as Product);
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    openQuickView(product.id);
+    if (productId) openQuickView(productId);
   };
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist(product.id);
-    if (isWishlisted) {
-      toast.info("Removed from wishlist", product.name);
-    } else {
-      toast.success("Saved to wishlist", product.name);
+    if (!productId) return;
+    const res = await wishlistStore.toggle(productId);
+    if (res.ok) {
+      if (res.action === "removed") {
+        toast.info("Removed from wishlist", product.name);
+      } else {
+        toast.success("Saved to wishlist", product.name);
+      }
     }
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-    });
-    toast.success("Added to cart", `${product.name} · ₦${product.price.toLocaleString()}`);
+    if (!productId) return;
+    const res = await addItem(productId, 1);
+    if (res.ok) {
+      toast.success("Added to cart", `${product.name} · ₦${product.price.toLocaleString()}`);
+    }
   };
 
   return (
-    <Card className={`group relative flex flex-col h-full overflow-hidden ${className || ""}`}>
+    <Card className={cn("group relative flex flex-col h-full overflow-hidden", className)}>
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-muted">
-        <Link href={`/product/${product.id}`} className="block w-full h-full">
+        <Link href={`/product/${productSlug}`} className="block w-full h-full">
           <SafeImage
-            src={product.image}
+            src={image}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -70,9 +77,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
             priority={false}
           />
         </Link>
-
-        {/* Image Overlay on Hover */}
-        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -85,9 +89,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <Badge className="rounded-full px-3 py-1 bg-foreground/80 text-background text-xs font-medium backdrop-blur-sm">
               Out of stock
             </Badge>
-          ) : product.stock < 10 ? (
+          ) : stock < 10 ? (
             <Badge className="rounded-full px-3 py-1 bg-destructive/90 text-destructive-foreground text-xs font-medium backdrop-blur-sm">
-              Only {product.stock} left
+              Only {stock} left
             </Badge>
           ) : null}
         </div>
@@ -110,8 +114,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
             "absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm shadow-sm transition-all duration-300 hover:scale-110",
             "opacity-0 group-hover:opacity-100 focus:opacity-100",
             isWishlisted
-              ? "bg-primary text-primary-foreground"
-              : "bg-background/90 hover:bg-background"
+              ? "bg-primary text-primary-foreground opacity-100"
+              : "bg-background/90 hover:bg-background text-foreground"
           )}
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
@@ -121,7 +125,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       <CardHeader className="flex flex-col gap-1.5 px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
-          {product.tags.slice(0, 1).map((tag) => (
+          {tags.slice(0, 1).map((tag) => (
             <Badge
               key={tag}
               variant="secondary"
@@ -131,7 +135,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </Badge>
           ))}
         </div>
-        <Link href={`/product/${product.id}`}>
+        <Link href={`/product/${productSlug}`}>
           <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
             {product.name}
           </h3>
@@ -145,10 +149,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="flex items-center justify-between mt-auto">
-        <span className="text-lg font-bold">
-          ₦{product.price.toLocaleString()}
-        </span>
+      <CardFooter className="flex items-center justify-between mt-auto px-4 pb-4 pt-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-lg font-bold">
+            ₦{product.price.toLocaleString()}
+          </span>
+          {product.compareAtPrice && product.compareAtPrice > product.price ? (
+            <span className="text-xs text-muted-foreground line-through">
+              ₦{product.compareAtPrice.toLocaleString()}
+            </span>
+          ) : null}
+        </div>
 
         {outOfStock ? (
           <Button size="sm" disabled variant="outline">
