@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      // Allow product images pasted by admins from any https host
+      { protocol: "https", hostname: "**" },
+    ],
+  },
 };
 
 export default nextConfig;

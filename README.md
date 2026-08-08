@@ -33,23 +33,27 @@ The sign-in screen includes a **"Try as Admin" / "Try as User"** button for one-
 ## Features
 
 ### Public storefront
-- **Home** — Hero, bestsellers, features, testimonials
-- **Shop** (`/shop`) — product catalog with search, category filter, sort
-- **Product detail** (`/product/[id]`) — image gallery, size selector, quantity, add-to-cart, recommendations
-- **Cart** (`/cart`) — quantity controls, line totals, order summary, free-shipping nudges
-- **Checkout** (`/checkout`) — 3-step shipping → payment → confirmation (with card formatting and validation)
+- **Home** — Hero with working search + CTAs, bestsellers, features, testimonials
+- **Global search** — press `⌘K` / `Ctrl+K` (or the header search icon) for a live product search dialog; the hero search jumps straight into `/shop?q=…`
+- **Shop** (`/shop`) — product catalog with search, category filter, sort, result counts, quick view
+- **Product detail** (`/product/[id]`) — image gallery, size selector, quantity stepper, delivery estimator, add-to-cart, recommendations (works for admin-created products too)
+- **Cart** (`/cart`) — quantity controls, line totals, order summary, free-shipping progress bar
+- **Checkout** (`/checkout`) — 3-step shipping → payment → confirmation (with card formatting, validation, and live stock decrement)
+- **Wishlist** (`/wishlist`) — persisted heart toggles on every product card, add-all-to-cart
 - **About** / **Contact** — brand story, values, stats, contact form
 - **Profile** (`/profile`) — order history, stats, account info
+- **Toasts** — every action (add to cart, wishlist, orders, newsletter, admin CRUD) gives instant feedback
 
 ### Admin module (`/admin`)
 Protected by auth + role check. Sidebar nav, breadcrumb, notification bell, search.
 
 - **Dashboard** — KPIs, recent orders, sales by category, top products, revenue trend
-- **Products** — full CRUD: create / edit / delete with slide-over form, search, category filter, low-stock highlighting
-- **Orders** — status pills, search, status update, slide-over detail drawer
+- **Products** — full CRUD: create / edit / delete with slide-over form, search (also via the top-bar search), category filter, low-stock highlighting, image fallbacks
+- **Orders** — status pills, search, status update, slide-over detail drawer, delete with confirm
 - **Customers** — derived from orders, spend breakdown, VIP tagging
 - **Analytics** — 6-month bar chart, status distribution, best sellers
 - **Settings** — store info, payments/delivery, notification preferences
+- **Notifications bell** — live dropdown of pending orders and low-stock alerts
 
 ### Auth
 - Persisted Zustand store with two demo users plus signup
@@ -77,6 +81,9 @@ store/
   auth.store.ts    auth + persistence
   cart.store.ts    cart + persistence
   admin.store.ts   products, orders, customers + persistence
+  wishlist.store.ts  wishlist + persistence
+  toast.store.ts     toast notifications
+  ui.store.ts        global search dialog state
   useProductUI.ts  quick-view dialog state
 ```
 

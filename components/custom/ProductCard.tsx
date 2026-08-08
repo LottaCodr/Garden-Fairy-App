@@ -1,14 +1,17 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart.store";
+import { useWishlistStore } from "@/store/wishlist.store";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Leaf, ShoppingCart } from "lucide-react";
+import { Eye, Heart, ShoppingCart } from "lucide-react";
 import { useProductUI } from "@/store/useProductUI";
+import { toast } from "@/store/toast.store";
+import { SafeImage } from "./SafeImage";
 import type { Product } from "@/lib/data/products";
+import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
   product: Product;
@@ -18,6 +21,11 @@ export interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   const openQuickView = useProductUI((s) => s.openQuickView);
   const addItem = useCartStore((s) => s.addItem);
+  const wishlistIds = useWishlistStore((s) => s.ids);
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
+
+  const outOfStock = product.stock <= 0;
+  const isWishlisted = wishlistIds.includes(product.id);
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -25,12 +33,35 @@ export function ProductCard({ product, className }: ProductCardProps) {
     openQuickView(product.id);
   };
 
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product.id);
+    if (isWishlisted) {
+      toast.info("Removed from wishlist", product.name);
+    } else {
+      toast.success("Saved to wishlist", product.name);
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    });
+    toast.success("Added to cart", `${product.name} · ₦${product.price.toLocaleString()}`);
+  };
+
   return (
     <Card className={`group relative flex flex-col h-full overflow-hidden ${className || ""}`}>
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <Link href={`/product/${product.id}`} className="block w-full h-full">
-          <Image
+          <SafeImage
             src={product.image}
             alt={product.name}
             fill
@@ -50,30 +81,41 @@ export function ProductCard({ product, className }: ProductCardProps) {
               Premium
             </Badge>
           )}
-          {product.stock < 10 && product.stock > 0 && (
+          {outOfStock ? (
+            <Badge className="rounded-full px-3 py-1 bg-foreground/80 text-background text-xs font-medium backdrop-blur-sm">
+              Out of stock
+            </Badge>
+          ) : product.stock < 10 ? (
             <Badge className="rounded-full px-3 py-1 bg-destructive/90 text-destructive-foreground text-xs font-medium backdrop-blur-sm">
               Only {product.stock} left
             </Badge>
-          )}
+          ) : null}
         </div>
 
         {/* Quick Actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus-within:opacity-100">
           <button
             onClick={handleQuickView}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm shadow-sm hover:bg-background hover:scale-105 transition-all"
-            aria-label="Quick view"
+            aria-label={`Quick view ${product.name}`}
           >
-            <ShoppingCart className="h-4 w-4 text-foreground" />
+            <Eye className="h-4 w-4 text-foreground" />
           </button>
         </div>
 
         {/* Favorite Button */}
         <button
-          className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-          aria-label="Add to wishlist"
+          onClick={handleWishlist}
+          className={cn(
+            "absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm shadow-sm transition-all duration-300 hover:scale-110",
+            "opacity-0 group-hover:opacity-100 focus:opacity-100",
+            isWishlisted
+              ? "bg-primary text-primary-foreground"
+              : "bg-background/90 hover:bg-background"
+          )}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Leaf className="h-4 w-4 text-foreground opacity-70" />
+          <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
         </button>
       </div>
 
@@ -102,25 +144,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </p>
       </CardContent>
 
-            {/* Footer */}
-            <CardFooter className="flex items-center justify-between">
-                <span className="text-lg font-bold">
-                    ₦{product.price}
-                </span>
+      {/* Footer */}
+      <CardFooter className="flex items-center justify-between mt-auto">
+        <span className="text-lg font-bold">
+          ₦{product.price.toLocaleString()}
+        </span>
 
-                <Button
-                    size="sm"
-                    onClick={() =>
-                        addItem({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image: product.image,
-                        })
-                    }
-                >
-                    Add to Cart
-                </Button>
+        {outOfStock ? (
+          <Button size="sm" disabled variant="outline">
+            Out of stock
+          </Button>
+        ) : (
+          <Button size="sm" onClick={handleAddToCart}>
+            <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+            Add to Cart
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

@@ -8,8 +8,9 @@ import { useEffect, useRef } from "react";
 
 export function Testimonials() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
 
-  // Auto-scroll logic
+  // Auto-scroll logic (pauses while the user is hovering or dragging)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -22,20 +23,41 @@ export function Testimonials() {
       if (!container) return;
 
       const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) return;
 
-      scrollAmount += direction * 0.8;
+      if (!pausedRef.current) {
+        scrollAmount += direction * 0.8;
 
-      if (scrollAmount >= maxScroll) direction = -1;
-      if (scrollAmount <= 0) direction = 1;
+        if (scrollAmount >= maxScroll) direction = -1;
+        if (scrollAmount <= 0) direction = 1;
 
-      container.scrollTo({ left: scrollAmount, behavior: "smooth" });
+        container.scrollTo({ left: scrollAmount, behavior: "smooth" });
+      }
 
       animationFrame = requestAnimationFrame(step);
     };
 
+    const pause = () => {
+      pausedRef.current = true;
+    };
+    const resume = () => {
+      pausedRef.current = false;
+    };
+
+    container.addEventListener("pointerenter", pause);
+    container.addEventListener("pointerleave", resume);
+    container.addEventListener("touchstart", pause, { passive: true });
+    container.addEventListener("touchend", resume, { passive: true });
+
     animationFrame = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      container.removeEventListener("pointerenter", pause);
+      container.removeEventListener("pointerleave", resume);
+      container.removeEventListener("touchstart", pause);
+      container.removeEventListener("touchend", resume);
+    };
   }, []);
 
   return (

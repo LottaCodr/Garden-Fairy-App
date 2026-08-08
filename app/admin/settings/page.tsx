@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "@/store/toast.store";
 
 export default function AdminSettingsPage() {
     const user = useAuthStore((s) => s.user);
@@ -37,6 +38,7 @@ export default function AdminSettingsPage() {
         // In a real app this would POST to an API
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
+        toast.success("Settings saved", "Your store preferences have been updated.");
     }
 
     return (

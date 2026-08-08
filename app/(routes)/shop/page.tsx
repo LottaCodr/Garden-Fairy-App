@@ -1,18 +1,45 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from "@/components/custom/ProductCard";
+import { ProductQuickView } from "@/components/custom/ProductQuickView";
 import { useAdminStore } from "@/store/admin.store";
 import { categories } from "@/lib/data/categories";
 import { cn } from "@/lib/utils";
 
-export default function ShopPage() {
+function ShopPageInner() {
     const products = useAdminStore((s) => s.products);
-    const [query, setQuery] = useState("");
-    const [category, setCategory] = useState<string>("all");
+    const searchParams = useSearchParams();
+
+    const urlQuery = searchParams.get("q") ?? "";
+    const urlCategory = searchParams.get("category");
+    const urlSort = searchParams.get("sort");
+
+    const [query, setQuery] = useState(urlQuery);
+    const [category, setCategory] = useState<string>(
+        urlCategory && categories.some((c) => c.id === urlCategory) ? urlCategory : "all"
+    );
     const [premiumOnly, setPremiumOnly] = useState(false);
-    const [sort, setSort] = useState<"featured" | "price-asc" | "price-desc">("featured");
+    const [sort, setSort] = useState<"featured" | "price-asc" | "price-desc">(
+        urlSort === "price-asc" || urlSort === "price-desc" ? urlSort : "featured"
+    );
+
+    // Keep filters in sync with the URL (?q=, ?category=, ?sort=) — e.g. when
+    // searching again from the hero while already on this page.
+    const [prevQ, setPrevQ] = useState(urlQuery);
+    if (urlQuery !== prevQ) {
+        setPrevQ(urlQuery);
+        setQuery(urlQuery);
+    }
+    const [prevCat, setPrevCat] = useState(category);
+    const nextCat =
+        urlCategory && categories.some((c) => c.id === urlCategory) ? urlCategory : "all";
+    if (nextCat !== prevCat) {
+        setPrevCat(nextCat);
+        setCategory(nextCat);
+    }
 
     const filtered = useMemo(() => {
         let list = products.filter((p) => {
@@ -35,6 +62,9 @@ export default function ShopPage() {
         return list;
     }, [products, query, category, premiumOnly, sort]);
 
+    const hasActiveFilters =
+        query !== "" || category !== "all" || premiumOnly || sort !== "featured";
+
     return (
         <main className="mx-auto max-w-7xl px-4 py-12">
             {/* Header */}
@@ -53,7 +83,7 @@ export default function ShopPage() {
 
             {/* Controls */}
             <div className="mb-8 grid gap-3 rounded-xl border border-border bg-card/50 p-4 md:grid-cols-[1fr_auto_auto]">
-                <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
+                <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 focus-within:ring-2 focus-within:ring-primary/30 transition-shadow">
                     <Search className="h-4 w-4 text-muted-foreground" />
                     <input
                         value={query}
@@ -61,12 +91,22 @@ export default function ShopPage() {
                         placeholder="Search products..."
                         className="h-10 w-full bg-transparent text-sm focus:outline-none"
                     />
+                    {query && (
+                        <button
+                            onClick={() => setQuery("")}
+                            aria-label="Clear search"
+                            className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    )}
                 </div>
 
                 <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as typeof sort)}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none"
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    aria-label="Sort products"
                 >
                     <option value="featured">Featured</option>
                     <option value="price-asc">Price: Low to high</option>
@@ -85,7 +125,7 @@ export default function ShopPage() {
             </div>
 
             {/* Categories */}
-            <div className="mb-8 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap gap-2">
                 <CategoryChip
                     active={category === "all"}
                     onClick={() => setCategory("all")}
@@ -101,21 +141,33 @@ export default function ShopPage() {
                 ))}
             </div>
 
+            {/* Result count */}
+            <p className="mb-6 text-xs text-muted-foreground">
+                {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+                {query ? ` for “${query}”` : ""}
+            </p>
+
             {/* Grid */}
             {filtered.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card/30 py-20 text-center">
                     <SlidersHorizontal className="h-8 w-8 text-muted-foreground" />
                     <p className="text-sm font-medium">No products match your filters</p>
-                    <button
-                        onClick={() => {
-                            setQuery("");
-                            setCategory("all");
-                            setPremiumOnly(false);
-                        }}
-                        className="text-xs font-semibold text-primary hover:underline"
-                    >
-                        Clear filters
-                    </button>
+                    <p className="text-xs text-muted-foreground">
+                        Try a different search term or clear the filters.
+                    </p>
+                    {hasActiveFilters && (
+                        <button
+                            onClick={() => {
+                                setQuery("");
+                                setCategory("all");
+                                setPremiumOnly(false);
+                                setSort("featured");
+                            }}
+                            className="mt-1 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                        >
+                            Clear all filters
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -124,7 +176,17 @@ export default function ShopPage() {
                     ))}
                 </div>
             )}
+
+            <ProductQuickView />
         </main>
+    );
+}
+
+export default function ShopPage() {
+    return (
+        <Suspense>
+            <ShopPageInner />
+        </Suspense>
     );
 }
 

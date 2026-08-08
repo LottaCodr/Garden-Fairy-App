@@ -1,12 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/store/cart.store";
+import { SafeImage } from "@/components/custom/SafeImage";
+import { toast } from "@/store/toast.store";
 import OrderSummary from "./order.summary";
 import EmptyCart from "./empty.card";
 
@@ -31,7 +32,7 @@ export default function CartPageComponent() {
                             <Card key={item.id}>
                                 <CardContent className="flex gap-4 p-4">
                                     <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-md">
-                                        <Image
+                                        <SafeImage
                                             src={item.image}
                                             alt={item.name}
                                             fill
@@ -101,7 +102,10 @@ export default function CartPageComponent() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => removeItem(item.id)}
+                                                    onClick={() => {
+                                                        removeItem(item.id);
+                                                        toast.info("Removed from cart", item.name);
+                                                    }}
                                                     className="text-destructive hover:text-destructive"
                                                     aria-label="Remove from cart"
                                                 >
@@ -124,7 +128,10 @@ export default function CartPageComponent() {
                             </Link>
                             <Button
                                 variant="ghost"
-                                onClick={() => useCartStore.getState().clearCart()}
+                                onClick={() => {
+                                    useCartStore.getState().clearCart();
+                                    toast.info("Cart cleared");
+                                }}
                                 className="text-destructive hover:text-destructive"
                             >
                                 Clear cart

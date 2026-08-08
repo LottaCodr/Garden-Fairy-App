@@ -1,8 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Twitter, Instagram, Facebook, Leaf, Mail, MapPin, Phone } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import {
+  Twitter,
+  Instagram,
+  Facebook,
+  Leaf,
+  Mail,
+  MapPin,
+  Phone,
+  CheckCircle2,
+} from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "@/store/toast.store";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -11,16 +22,16 @@ const fadeUp = {
 
 const footerLinks = {
   Shop: [
-    { label: "Plants", href: "/shop" },
-    { label: "Collections", href: "/shop?category=premium" },
-    { label: "Gift Cards", href: "/shop?category=gifts" },
-    { label: "Sale", href: "/shop?sort=premium" },
+    { label: "All Plants", href: "/shop" },
+    { label: "Garden & Outdoor", href: "/shop?category=garden" },
+    { label: "Interior Design", href: "/shop?category=interior" },
+    { label: "Workspace", href: "/shop?category=workspace" },
   ],
   Support: [
+    { label: "Contact Us", href: "/contact" },
     { label: "FAQ", href: "/contact" },
     { label: "Shipping", href: "/contact" },
     { label: "Returns", href: "/contact" },
-    { label: "Contact Us", href: "/contact" },
   ],
   Company: [
     { label: "About Us", href: "/about" },
@@ -30,8 +41,28 @@ const footerLinks = {
   ],
 };
 
+const socials = [
+  { icon: Twitter, label: "Twitter", href: "https://twitter.com" },
+  { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
+  { icon: Facebook, label: "Facebook", href: "https://facebook.com" },
+];
+
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  function handleSubscribe(e: FormEvent) {
+    e.preventDefault();
+    const value = email.trim();
+    if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setSubscribed(true);
+    setEmail("");
+    toast.success("Subscribed!", "You're on the list — watch your inbox for fresh arrivals.");
+  }
 
   return (
     <motion.footer
@@ -88,14 +119,12 @@ export function Footer() {
 
             {/* Social Links */}
             <div className="mt-6 flex gap-3">
-              {[
-                { icon: Twitter, label: "Twitter" },
-                { icon: Instagram, label: "Instagram" },
-                { icon: Facebook, label: "Facebook" },
-              ].map(({ icon: Icon, label }) => (
+              {socials.map(({ icon: Icon, label, href }) => (
                 <a
                   key={label}
-                  href="#"
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-background/20 text-background/70 hover:border-primary hover:text-primary hover:bg-primary/10 transition-all"
                 >
@@ -182,25 +211,42 @@ export function Footer() {
                 Get notified about new arrivals, care tips, and exclusive offers.
               </p>
             </div>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex gap-2 max-w-md w-full md:w-auto"
-            >
-              <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-background/50" />
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full h-10 pl-10 pr-4 rounded-lg border border-background/20 bg-background/10 text-sm text-white placeholder:text-background/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                />
+            {subscribed ? (
+              <div className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 px-5 py-3 text-sm text-white">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <span>
+                  You&apos;re subscribed!{" "}
+                  <button
+                    onClick={() => setSubscribed(false)}
+                    className="ml-1 text-background/60 underline-offset-2 hover:text-white hover:underline"
+                  >
+                    Undo
+                  </button>
+                </span>
               </div>
-              <button
-                type="submit"
-                className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+            ) : (
+              <form
+                onSubmit={handleSubscribe}
+                className="flex gap-2 max-w-md w-full md:w-auto"
               >
-                Subscribe
-              </button>
-            </form>
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-background/50" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full h-10 pl-10 pr-4 rounded-lg border border-background/20 bg-background/10 text-sm text-white placeholder:text-background/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+                >
+                  Subscribe
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

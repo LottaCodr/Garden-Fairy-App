@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, ShoppingBag, Eye, X, ChevronDown } from "lucide-react";
+import { Search, ShoppingBag, Eye, X, ChevronDown, Trash2 } from "lucide-react";
 import { useAdminStore, type OrderStatus } from "@/store/admin.store";
+import { toast } from "@/store/toast.store";
 import {
     Card,
     CardContent,
@@ -33,10 +34,12 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
 export default function AdminOrdersPage() {
     const orders = useAdminStore((s) => s.orders);
     const updateOrderStatus = useAdminStore((s) => s.updateOrderStatus);
+    const deleteOrder = useAdminStore((s) => s.deleteOrder);
 
     const [query, setQuery] = useState("");
     const [status, setStatus] = useState<"all" | OrderStatus>("all");
     const [selected, setSelected] = useState<string | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
 
     const filtered = useMemo(() => {
         let list = orders;
@@ -213,12 +216,14 @@ export default function AdminOrdersPage() {
                                 <div className="relative">
                                     <select
                                         value={selectedOrder.status}
-                                        onChange={(e) =>
-                                            updateOrderStatus(
-                                                selectedOrder.id,
-                                                e.target.value as OrderStatus
-                                            )
-                                        }
+                                        onChange={(e) => {
+                                            const next = e.target.value as OrderStatus;
+                                            updateOrderStatus(selectedOrder.id, next);
+                                            toast.success(
+                                                "Order updated",
+                                                `${selectedOrder.id} is now ${next}.`
+                                            );
+                                        }}
                                         className="w-full appearance-none rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                                     >
                                         {STATUS_OPTIONS.map((s) => (
@@ -269,6 +274,9 @@ export default function AdminOrdersPage() {
                                                 <img
                                                     src={i.image}
                                                     alt={i.name}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = "/images/plants/1.jpg";
+                                                    }}
                                                     className="h-full w-full object-cover"
                                                 />
                                             </div>
@@ -316,6 +324,55 @@ export default function AdminOrdersPage() {
                                         {selectedOrder.paymentStatus}
                                     </Badge>
                                 </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Delete */}
+                            <div className="border-t border-border pt-4">
+                                {confirmDelete ? (
+                                    <div className="space-y-3 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                                        <p className="text-xs font-medium text-destructive">
+                                            Delete this order? This cannot be undone.
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="flex-1"
+                                                onClick={() => setConfirmDelete(false)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                className="flex-1"
+                                                onClick={() => {
+                                                    deleteOrder(selectedOrder.id);
+                                                    setConfirmDelete(false);
+                                                    setSelected(null);
+                                                    toast.success(
+                                                        "Order deleted",
+                                                        selectedOrder.id
+                                                    );
+                                                }}
+                                            >
+                                                Delete order
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-destructive hover:text-destructive"
+                                        onClick={() => setConfirmDelete(true)}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete order
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </motion.div>

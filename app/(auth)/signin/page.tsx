@@ -20,10 +20,9 @@ function SignInForm() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
 
-    async function handleSubmit(e: FormEvent) {
-        e.preventDefault();
+    async function doSignin(emailValue: string, passwordValue: string) {
         setError(null);
-        const result = await signin(email, password);
+        const result = await signin(emailValue, passwordValue);
         if (!result.ok) {
             setError(result.error || "Something went wrong");
             return;
@@ -37,13 +36,20 @@ function SignInForm() {
         router.refresh();
     }
 
-    function fillDemo(role: "admin" | "user") {
+    async function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        await doSignin(email, password);
+    }
+
+    async function fillDemo(role: "admin" | "user") {
         if (role === "admin") {
             setEmail("admin@gardenfairy.com");
             setPassword("admin123");
+            await doSignin("admin@gardenfairy.com", "admin123");
         } else {
             setEmail("user@gardenfairy.com");
             setPassword("user123");
+            await doSignin("user@gardenfairy.com", "user123");
         }
     }
 
@@ -119,17 +125,19 @@ function SignInForm() {
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
+                        disabled={isLoading}
                         onClick={() => fillDemo("user")}
-                        className="rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary transition"
+                        className="rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary transition disabled:opacity-50"
                     >
-                        Try as User
+                        {isLoading ? "Signing in…" : "Try as User"}
                     </button>
                     <button
                         type="button"
+                        disabled={isLoading}
                         onClick={() => fillDemo("admin")}
-                        className="rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary transition"
+                        className="rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary transition disabled:opacity-50"
                     >
-                        Try as Admin
+                        {isLoading ? "Signing in…" : "Try as Admin"}
                     </button>
                 </div>
             </form>

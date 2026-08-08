@@ -41,6 +41,9 @@ export default function CheckoutPageComponent() {
     const [loading, setLoading] = useState(false);
     const [orderId, setOrderId] = useState<string | null>(null);
 
+    const updateProduct = useAdminStore((s) => s.updateProduct);
+    const adminProducts = useAdminStore((s) => s.products);
+
     const [form, setForm] = useState({
         name: user?.name || "",
         email: user?.email || "",
@@ -110,6 +113,16 @@ export default function CheckoutPageComponent() {
             total,
             shippingAddress: `${form.address}, ${form.city}, ${form.state}`,
         });
+
+        // Decrement live stock so inventory stays consistent with sales
+        for (const i of items) {
+            const product = adminProducts.find((p) => p.id === i.id);
+            if (product) {
+                updateProduct(product.id, {
+                    stock: Math.max(0, product.stock - i.quantity),
+                });
+            }
+        }
 
         setOrderId(order.id);
         clearCart();
@@ -355,6 +368,9 @@ export default function CheckoutPageComponent() {
                                                 <img
                                                     src={i.image}
                                                     alt={i.name}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = "/images/plants/1.jpg";
+                                                    }}
                                                     className="h-full w-full object-cover"
                                                 />
                                             </div>

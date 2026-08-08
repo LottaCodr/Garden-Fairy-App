@@ -46,6 +46,9 @@ export function CartDropdown() {
                                     <img
                                         src={item.image}
                                         alt={item.name}
+                                        onError={(e) => {
+                                            e.currentTarget.src = "/images/plants/1.jpg";
+                                        }}
                                         className="h-full w-full object-cover"
                                     />
                                 </div>
