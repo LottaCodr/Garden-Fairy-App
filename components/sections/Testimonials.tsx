@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 
 export function Testimonials() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,9 +129,19 @@ export function Testimonials() {
 
                     {/* Author */}
                     <div className="mt-auto flex items-center gap-3 pt-4 border-t border-border">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                        {t.name.charAt(0)}
-                      </div>
+                      {t.avatar ? (
+                        <Image
+                          src={t.avatar}
+                          alt={t.name}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                          {t.name.charAt(0)}
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-semibold text-foreground">
                           {t.name}

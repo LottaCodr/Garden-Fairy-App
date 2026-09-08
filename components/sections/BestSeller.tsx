@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import type { Product, Paged } from "@/types/api";
+import { mockApiProducts } from "@/lib/data/products";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -37,11 +38,18 @@ export function BestSellers() {
         } else if (Array.isArray(res)) {
           list = res;
         }
+        // Fallback to local mock when API returns empty
+        if (list.length === 0) {
+          list = (mockApiProducts.slice(0, 8) as unknown as Product[]);
+        }
         setBestsellers(list);
         setLoading(false);
       })
       .catch(() => {
-        if (mounted) setLoading(false);
+        if (!mounted) return;
+        // Offline fallback — show generated mock catalog
+        setBestsellers(mockApiProducts.slice(0, 8) as unknown as Product[]);
+        setLoading(false);
       });
 
     return () => {
