@@ -13,6 +13,7 @@ import { SafeImage } from "./SafeImage";
 import { api } from "@/lib/api";
 import type { Product } from "@/types/api";
 import { getProductImage } from "@/lib/product-helpers";
+import { findMockProduct } from "@/lib/mock/products";
 
 export function ProductQuickView() {
   const { quickViewProductId, closeQuickView } = useProductUI();
@@ -33,12 +34,14 @@ export function ProductQuickView() {
         .then((res) => {
           if (isMounted) {
             const p = res?.data ?? (res as unknown as Product);
-            setProduct(p || null);
+            // Fall back to the local mock catalog when the API has nothing for us
+            setProduct(p && (p._id || p.slug) ? p : findMockProduct(quickViewProductId));
             setLoading(false);
           }
         })
         .catch(() => {
           if (isMounted) {
+            setProduct(findMockProduct(quickViewProductId));
             setLoading(false);
           }
         });

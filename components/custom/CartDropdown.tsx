@@ -13,6 +13,7 @@ import { useCartStore } from "@/store/cart.store";
 export function CartDropdown() {
   const items = useCartStore((s) => s.items);
   const count = useCartStore((s) => s.count());
+  const isMock = useCartStore((s) => s.isMock);
 
   return (
     <DropdownMenu>
@@ -32,6 +33,12 @@ export function CartDropdown() {
         className="w-80 bg-card/95 backdrop-blur-md border border-border shadow-xl rounded-lg p-4"
       >
         <p className="mb-3 text-sm font-semibold">Your cart</p>
+
+        {isMock ? (
+          <p className="mb-3 rounded-md bg-accent/30 px-2 py-1 text-[11px] text-muted-foreground">
+            Demo cart — running on mock data
+          </p>
+        ) : null}
 
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Your cart is empty</p>

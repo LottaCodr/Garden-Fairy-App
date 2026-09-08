@@ -32,6 +32,7 @@ import { SafeImage } from "@/components/custom/SafeImage";
 import { api, ApiError } from "@/lib/api";
 import type { Product, Review, Paged, DeliveryQuote } from "@/types/api";
 import { getProductImages } from "@/lib/product-helpers";
+import { findMockProduct } from "@/lib/mock/products";
 
 const NIGERIAN_STATES = [
   "Lagos",
@@ -82,6 +83,18 @@ export default function ProductDetailPage({ productId }: { productId: string }) 
 
   // Fetch product data
   const fetchProduct = useCallback(async () => {
+    // Local mock catalog — used when the API is offline so add-to-cart stays testable
+    const applyMockProduct = () => {
+      const local = findMockProduct(productId);
+      if (local) {
+        setProduct(local);
+        setError(false);
+        return true;
+      }
+      setError(true);
+      return false;
+    };
+
     try {
       const res = await api<{ success?: boolean; data?: Product }>(`/products/${productId}`);
       const p = res?.data ?? (res as unknown as Product);
@@ -89,10 +102,10 @@ export default function ProductDetailPage({ productId }: { productId: string }) 
         setProduct(p);
         setError(false);
       } else {
-        setError(true);
+        applyMockProduct();
       }
     } catch {
-      setError(true);
+      applyMockProduct();
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,15 @@
 import { create } from "zustand";
-import { api, ApiError } from "@/lib/api";
+import { api } from "@/lib/api";
 import type { Cart, CartItem } from "@/types/api";
 import { toast } from "@/store/toast.store";
+import { errorMessage, isMockMode, isUnreachableError, markApiUnavailable } from "@/lib/mock/mode";
+import {
+  mockAddItem,
+  mockClearCart,
+  mockGetCart,
+  mockRemoveItem,
+  mockSetItemQty,
+} from "@/lib/mock/cart";
 
 export type { CartItem, Cart };
 
@@ -22,6 +30,8 @@ interface CartState {
   items: CartItem[];
   isLoading: boolean;
   error: string | null;
+  /** True once the store is serving the local mock cart (see `lib/mock/mode.ts`). */
+  isMock: boolean;
 
   fetch: () => Promise<Cart | null>;
   addItem: (
@@ -42,21 +52,48 @@ interface CartState {
   subTotal: () => number;
 }
 
+const emptyCart = (): Cart => ({ id: "", items: [], subtotal: 0 });
+
+/**
+ * Run the live request; if the backend is unreachable (not running, preview box,
+ * offline) latch into mock mode and serve the same operation from the local
+ * mock catalog instead of failing the UI. Real API errors (4xx/5xx with a body)
+ * still bubble up so the caller can toast them.
+ */
+async function withMockFallback(remote: () => Promise<Cart>, local: () => Cart): Promise<Cart> {
+  if (isMockMode()) return local();
+  try {
+    return await remote();
+  } catch (err: unknown) {
+    if (isUnreachableError(err)) {
+      markApiUnavailable(errorMessage(err, "no response"));
+      return local();
+    }
+    throw err;
+  }
+}
+
 export const useCartStore = create<CartState>((set, get) => ({
   cart: null,
   items: [],
   isLoading: false,
   error: null,
+  isMock: false,
 
   fetch: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await api<{ data: Cart }>("/cart");
-      const cart = res?.data ?? { id: "", items: [], subtotal: 0 };
-      set({ cart, items: cart.items || [], isLoading: false });
+      const cart = await withMockFallback(
+        async () => {
+          const res = await api<{ data: Cart }>("/cart");
+          return res?.data ?? emptyCart();
+        },
+        () => mockGetCart(),
+      );
+      set({ cart, items: cart.items || [], isLoading: false, isMock: isMockMode() });
       return cart;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to load cart";
+      const message = errorMessage(err, "Failed to load cart");
       set({ error: message, isLoading: false });
       return null;
     }
@@ -66,6 +103,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     let productId = "";
     let itemQty = qty;
     let itemSize = size;
+    let fallback: { name?: string; price?: number; image?: string } | undefined;
 
     if (typeof itemOrId === "string") {
       productId = itemOrId;
@@ -73,6 +111,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       productId = itemOrId.product || itemOrId.productId || itemOrId.id || "";
       itemQty = itemOrId.qty ?? itemOrId.quantity ?? qty ?? 1;
       itemSize = itemOrId.size ?? size;
+      fallback = { name: itemOrId.name, price: itemOrId.price, image: itemOrId.image };
     }
 
     if (!productId) {
@@ -81,24 +120,30 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const res = await api<{ data: Cart }>("/cart/items", {
-        method: "POST",
-        json: {
-          product: productId,
-          qty: itemQty,
-          ...(itemSize ? { size: itemSize } : {}),
+      const cart = await withMockFallback(
+        async () => {
+          const res = await api<{ data: Cart }>("/cart/items", {
+            method: "POST",
+            json: {
+              product: productId,
+              qty: itemQty,
+              ...(itemSize ? { size: itemSize } : {}),
+            },
+          });
+          return res?.data ?? emptyCart();
         },
-      });
-      const cart = res?.data ?? { id: "", items: [], subtotal: 0 };
-      set({ cart, items: cart.items || [], isLoading: false });
+        () =>
+          mockAddItem({
+            product: productId,
+            qty: itemQty,
+            size: itemSize,
+            fallback: fallback?.name ? fallback : undefined,
+          }),
+      );
+      set({ cart, items: cart.items || [], isLoading: false, isMock: isMockMode() });
       return { ok: true };
     } catch (err: unknown) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Failed to add item to cart";
+      const message = errorMessage(err, "Failed to add item to cart");
       toast.error(message);
       // refetch cart to keep server truth
       await get().fetch();
@@ -113,23 +158,23 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
     set({ isLoading: true, error: null });
     try {
-      const res = await api<{ data: Cart }>(`/cart/items/${id}`, {
-        method: "PUT",
-        json: {
-          qty,
-          ...(size ? { size } : {}),
+      const cart = await withMockFallback(
+        async () => {
+          const res = await api<{ data: Cart }>(`/cart/items/${id}`, {
+            method: "PUT",
+            json: {
+              qty,
+              ...(size ? { size } : {}),
+            },
+          });
+          return res?.data ?? emptyCart();
         },
-      });
-      const cart = res?.data ?? { id: "", items: [], subtotal: 0 };
-      set({ cart, items: cart.items || [], isLoading: false });
+        () => mockSetItemQty(id, qty, size),
+      );
+      set({ cart, items: cart.items || [], isLoading: false, isMock: isMockMode() });
       return { ok: true };
     } catch (err: unknown) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Failed to update quantity";
+      const message = errorMessage(err, "Failed to update quantity");
       toast.error(message);
       await get().fetch();
       set({ error: message, isLoading: false });
@@ -149,15 +194,19 @@ export const useCartStore = create<CartState>((set, get) => ({
   removeItem: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await api<{ data: Cart }>(`/cart/items/${id}`, {
-        method: "DELETE",
-      });
-      const cart = res?.data ?? { id: "", items: [], subtotal: 0 };
-      set({ cart, items: cart.items || [], isLoading: false });
+      const cart = await withMockFallback(
+        async () => {
+          const res = await api<{ data: Cart }>(`/cart/items/${id}`, {
+            method: "DELETE",
+          });
+          return res?.data ?? emptyCart();
+        },
+        () => mockRemoveItem(id),
+      );
+      set({ cart, items: cart.items || [], isLoading: false, isMock: isMockMode() });
       return { ok: true };
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to remove item";
+      const message = errorMessage(err, "Failed to remove item");
       toast.error(message);
       await get().fetch();
       set({ error: message, isLoading: false });
@@ -167,11 +216,16 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearCart: async () => {
     try {
-      const res = await api<{ data: Cart }>("/cart", {
-        method: "DELETE",
-      });
-      const cart = res?.data ?? { id: "", items: [], subtotal: 0 };
-      set({ cart, items: cart.items || [], isLoading: false, error: null });
+      const cart = await withMockFallback(
+        async () => {
+          const res = await api<{ data: Cart }>("/cart", {
+            method: "DELETE",
+          });
+          return res?.data ?? emptyCart();
+        },
+        () => mockClearCart(),
+      );
+      set({ cart, items: cart.items || [], isLoading: false, error: null, isMock: isMockMode() });
     } catch {
       set({
         cart: { id: "", items: [], subtotal: 0 },

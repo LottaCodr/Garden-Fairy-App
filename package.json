@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify:mock-cart": "node --experimental-transform-types scripts/verify-mock-cart.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

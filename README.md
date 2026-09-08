@@ -21,6 +21,37 @@ npm run build    # production build
 npm run lint     # ESLint (clean)
 ```
 
+## Testing without the backend
+
+The storefront talks to an Express API (`NEXT_PUBLIC_API_URL`, default `http://localhost:5000`).
+When that API isn't running, the shop renders the local mock catalog (`lib/data/products.ts`)
+**and the cart falls back to a matching local mock cart** (`lib/mock/cart.ts`), so
+**Add to cart, quantity steppers, remove, clear, the header badge and the cart page all work
+with mock data** — no server needed.
+
+| `NEXT_PUBLIC_USE_MOCK_CART` | Behaviour                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| _unset_ (default)           | Call the API; if it's unreachable, latch into mock mode for the rest of the session |
+| `1` / `true`                | Always use the mock cart (network is never touched)                          |
+| `0` / `false`               | Always use the live API, never fall back                                     |
+
+Mock cart details:
+
+- Product name / price / image / stock are resolved from the mock catalog by `_id`, id **or** slug.
+- Same product + same size share a line; different sizes get separate lines.
+- Stock is enforced (`Only 9 × … left in stock`), and quantity 0 removes the line.
+- State is persisted in `localStorage` under `garden-fairy:mock-cart`, so it survives reloads.
+  Clear it from devtools, or call `mockResetCart()` from `lib/mock/cart`.
+- The header cart dropdown shows a small "Demo cart — running on mock data" note when active.
+- Real API errors (4xx/5xx with a body, e.g. a stock conflict) are **not** swallowed by the
+  fallback — they still surface as toasts.
+
+To re-run the cart behaviour checks (no browser, no backend required):
+
+```bash
+npm run verify:mock-cart   # 13 assertions over store/cart.store.ts + lib/mock/cart.ts
+```
+
 ## Demo accounts
 
 The sign-in screen includes a **"Try as Admin" / "Try as User"** button for one-click login. Credentials:
