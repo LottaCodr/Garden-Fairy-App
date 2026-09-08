@@ -9,6 +9,8 @@ import { CategoryIcon } from "@/lib/category-icons";
 import { api } from "@/lib/api";
 import type { Category, Product, Paged } from "@/types/api";
 import { cn } from "@/lib/utils";
+import { mockApiProducts } from "@/lib/data/products";
+import { categories as mockCategories } from "@/lib/data/categories";
 
 function ShopPageInner() {
   const router = useRouter();
@@ -33,18 +35,28 @@ function ShopPageInner() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Fetch categories once on mount
+  // Fetch categories once on mount — fallback to local mocks when API offline
   useEffect(() => {
     api<{ success?: boolean; data?: Category[] }>("/categories")
       .then((res) => {
-        if (Array.isArray(res?.data)) {
+        if (Array.isArray(res?.data) && res.data.length > 0) {
           setCategories(res.data);
-        } else if (Array.isArray(res)) {
+        } else if (Array.isArray(res) && res.length > 0) {
           setCategories(res);
+        } else {
+          throw new Error("empty");
         }
       })
       .catch(() => {
-        setCategories([]);
+        // Map local mock categories to API shape
+        const fallback: Category[] = mockCategories.map((c) => ({
+          _id: c.id,
+          name: c.name,
+          slug: c.id,
+          description: c.description,
+          icon: c.icon,
+        }));
+        setCategories(fallback);
       });
   }, []);
 
@@ -78,9 +90,47 @@ function ShopPageInner() {
     [router, query, selectedCategory, premiumOnly, sort, page],
   );
 
-  // Fetch products from server whenever filters change
+  // Fetch products from server whenever filters change — with local mock fallback
   useEffect(() => {
     let active = true;
+
+    const getMockFallback = () => {
+      let list = [...mockApiProducts] as unknown as Product[];
+
+      if (query.trim()) {
+        const q = query.trim().toLowerCase();
+        list = list.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.tags.some((t) => t.toLowerCase().includes(q)),
+        );
+      }
+
+      if (selectedCategory && selectedCategory !== "all") {
+        list = list.filter((p) => {
+          const cat = typeof p.category === "string" ? p.category : (p.category as Category)._id;
+          return cat === selectedCategory || (p as unknown as { slug?: string }).slug === selectedCategory;
+        });
+      }
+
+      if (premiumOnly) {
+        list = list.filter((p) => p.isPremium);
+      }
+
+      if (sort === "price_asc") list.sort((a, b) => a.price - b.price);
+      else if (sort === "price_desc") list.sort((a, b) => b.price - a.price);
+      else if (sort === "rating" || sort === "popular")
+        list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      else if (sort === "name_asc") list.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sort === "newest") list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      const limit = 12;
+      const totalM = list.length;
+      const pagesM = Math.max(1, Math.ceil(totalM / limit));
+      const start = (page - 1) * limit;
+      return { list: list.slice(start, start + limit), total: totalM, pages: pagesM };
+    };
 
     const queryTimer = setTimeout(() => {
       const params = new URLSearchParams();
@@ -126,18 +176,26 @@ function ShopPageInner() {
             resTotal = list.length;
           }
 
-          setProducts(list);
-          setTotal(resTotal);
-          setTotalPages(resPages || 1);
+          // If API returned empty but we have local mocks, show mocks instead
+          if (list.length === 0 && mockApiProducts.length > 0) {
+            const fallback = getMockFallback();
+            setProducts(fallback.list);
+            setTotal(fallback.total);
+            setTotalPages(fallback.pages);
+          } else {
+            setProducts(list);
+            setTotal(resTotal);
+            setTotalPages(resPages || 1);
+          }
           setLoading(false);
         })
         .catch(() => {
-          if (active) {
-            setProducts([]);
-            setTotal(0);
-            setTotalPages(1);
-            setLoading(false);
-          }
+          if (!active) return;
+          const fallback = getMockFallback();
+          setProducts(fallback.list);
+          setTotal(fallback.total);
+          setTotalPages(fallback.pages);
+          setLoading(false);
         });
     }, 300);
 
