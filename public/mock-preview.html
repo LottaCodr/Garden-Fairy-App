@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Garden Fairy — Mock Shop Preview</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fafcfa;color:#1a2319;padding:24px}
+  h1{font-family:Georgia,serif;font-size:32px;margin-bottom:8px}
+  .sub{color:#5c6b5c;margin-bottom:24px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+  .card{background:#fff;border:1px solid #d8e3d6;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card img{width:100%;height:180px;object-fit:cover;display:block}
+  .card .info{padding:12px}
+  .name{font-weight:600;font-size:14px;line-height:1.2}
+  .price{color:#2d6a4f;font-weight:700;margin-top:4px}
+  .tag{font-size:11px;color:#5c6b5c}
+  .badge{display:inline-block;font-size:10px;background:#f0f7f0;color:#2d4a3a;border-radius:9999px;padding:2px 8px;margin-top:6px}
+  .premium{background:#f4c430;color:#3d2e00}
+  .hero{display:flex;gap:16px;margin:24px 0;flex-wrap:wrap}
+  .hero img{border-radius:16px;border:1px solid #d8e3d6;flex:1;min-width:300px;max-height:320px;object-fit:cover}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d8e3d6;padding:8px 12px;border-radius:9999px;font-size:12px}
+  code{background:#e8efe8;padding:2px 6px;border-radius:6px}
+  a{color:#2d6a4f}
+</style>
+</head>
+<body>
+  <h1>🌿 Garden Fairy — Mock Shop Data</h1>
+  <p class="sub">16 products · 4 categories · generated e-commerce renders (square 1:1, warm off-white, studio light). <br/>Fallback mode works offline — shop will auto-use these when API is unavailable. See <code>lib/data/products.ts</code> & <code>lib/data/mockShop.ts</code>.</p>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <span class="pill">🖼️ 10 AI-generated + 6 optimized placeholders (2.0 MB total)</span>
+    <span class="pill">📦 Price range ₦3,200 — ₦15,500</span>
+    <span class="pill">⭐ Avg rating 4.8</span>
+    <span class="pill">🔁 Regenerate pending: wooden stand, terrarium, bonsai, watering can, tool kit, apron when quota resets</span>
+  </div>
+
+  <div class="hero">
+    <img src="/images/products/monstera-deliciosa.jpg" alt="hero" />
+    <img src="/images/products/fiddle-leaf-fig.jpg" alt="hero2" />
+    <img src="/images/categories/garden.jpg" alt="garden category" />
+  </div>
+
+  <h2 style="margin:12px 0;font-size:18px">Products — /public/images/products/</h2>
+  <div class="grid">
+    <div class="card"><img src="/images/products/monstera-deliciosa.jpg"/><div class="info"><div class="name">Monstera Deliciosa</div><div class="tag">garden · tropical</div><div class="price">₦7,500 <span class="badge">Stock 28</span></div></div></div>
+    <div class="card"><img src="/images/products/snake-plant.jpg"/><div class="info"><div class="name">Snake Plant Laurentii</div><div class="tag">garden · low-light</div><div class="price">₦4,500 <span class="badge">Stock 42</span></div></div></div>
+    <div class="card"><img src="/images/products/fiddle-leaf-fig.jpg"/><div class="info"><div class="name">Fiddle Leaf Fig</div><div class="tag">garden · premium</div><div class="price">₦12,500 <span class="badge premium">Premium</span></div></div></div>
+    <div class="card"><img src="/images/products/golden-pothos.jpg"/><div class="info"><div class="name">Golden Pothos - Trailing</div><div class="tag">garden · hanging</div><div class="price">₦3,800</div></div></div>
+    <div class="card"><img src="/images/products/spider-plant.jpg"/><div class="info"><div class="name">Spider Plant Vittatum</div><div class="tag">garden · pet-friendly</div><div class="price">₦3,200</div></div></div>
+    <div class="card"><img src="/images/products/calathea-orbifolia.jpg"/><div class="info"><div class="name">Calathea Orbifolia</div><div class="tag">garden · premium</div><div class="price">₦8,900 <span class="badge premium">Premium</span></div></div></div>
+    <div class="card"><img src="/images/products/peace-lily.jpg"/><div class="info"><div class="name">Peace Lily</div><div class="tag">garden · flowering</div><div class="price">₦6,200</div></div></div>
+    <div class="card"><img src="/images/products/succulent-echeveria.jpg"/><div class="info"><div class="name">Echeveria Succulent Trio</div><div class="tag">garden · mini</div><div class="price">₦3,500</div></div></div>
+    <div class="card"><img src="/images/products/ceramic-pots-set.jpg"/><div class="info"><div class="name">Ceramic Pots Set — Nordic (3 pcs)</div><div class="tag">interior · minimal</div><div class="price">₦9,800</div></div></div>
+    <div class="card"><img src="/images/products/macrame-hanger.jpg"/><div class="info"><div class="name">Macramé Plant Hanger</div><div class="tag">interior · boho</div><div class="price">₦4,200</div></div></div>
+    <div class="card"><img src="/images/products/wooden-plant-stand.jpg"/><div class="info"><div class="name">Oak Tripod Plant Stand</div><div class="tag">interior · placeholder* </div><div class="price">₦11,200</div></div></div>
+    <div class="card"><img src="/images/products/desk-terrarium.jpg"/><div class="info"><div class="name">Glass Desk Terrarium</div><div class="tag">workspace · placeholder* </div><div class="price">₦6,800</div></div></div>
+    <div class="card"><img src="/images/products/mini-bonsai.jpg"/><div class="info"><div class="name">Mini Bonsai — Chinese Elm</div><div class="tag">workspace · premium</div><div class="price">₦15,500 <span class="badge premium">Premium</span></div></div></div>
+    <div class="card"><img src="/images/products/watering-can.jpg"/><div class="info"><div class="name">Copper Watering Can — 1L</div><div class="tag">garden · tools</div><div class="price">₦5,400</div></div></div>
+    <div class="card"><img src="/images/products/gardening-tools.jpg"/><div class="info"><div class="name">Botanist Tool Kit — 5 Piece</div><div class="tag">garden · gift</div><div class="price">₦7,200</div></div></div>
+    <div class="card"><img src="/images/products/linen-apron.jpg"/><div class="info"><div class="name">Linen Garden Apron — Sage</div><div class="tag">fashion · gardenwear</div><div class="price">₦8,900 <span class="badge premium">Premium</span></div></div></div>
+  </div>
+
+  <h2 style="margin:24px 0 12px;font-size:18px">Categories — /public/images/categories/</h2>
+  <div class="grid">
+    <div class="card"><img src="/images/categories/garden.jpg"/><div class="info"><div class="name">🌿 Garden & Outdoor</div><div class="tag">9 products</div></div></div>
+    <div class="card"><img src="/images/categories/interior.jpg"/><div class="info"><div class="name">🏠 Interior Design</div><div class="tag">3 products</div></div></div>
+    <div class="card"><img src="/images/categories/workspace.jpg"/><div class="info"><div class="name">💻 Workspace</div><div class="tag">2 products</div></div></div>
+    <div class="card"><img src="/images/categories/fashion.jpg"/><div class="info"><div class="name">👕 Garden Wear</div><div class="tag">2 products</div></div></div>
+  </div>
+
+  <h2 style="margin:24px 0 12px;font-size:18px">Avatars — /public/images/avatars/ (placeholder renders)</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <img src="/images/avatars/amaka.jpg" style="width:80px;height:80px;border-radius:9999px;object-fit:cover;border:2px solid #d8e3d6"/>
+    <img src="/images/avatars/daniel.jpg" style="width:80px;height:80px;border-radius:9999px;object-fit:cover;border:2px solid #d8e3d6"/>
+    <img src="/images/avatars/sarah.jpg" style="width:80px;height:80px;border-radius:9999px;object-fit:cover;border:2px solid #d8e3d6"/>
+    <img src="/images/avatars/chinedu.jpg" style="width:80px;height:80px;border-radius:9999px;object-fit:cover;border:2px solid #d8e3d6"/>
+  </div>
+
+  <p style="margin-top:24px;color:#5c6b5c;font-size:13px">* Placeholder images are optimized copies of the 10 generated renders, so every SKU has a valid <code>src</code> and the UI never breaks. Regenerate the 6 pending SKUs with <code>generate_image</code> when the 10-image quota resets (see prompts in <code>public/images/README.md</code>).<br/>Try the live shop fallback: open <a href="/shop">/shop</a> with your backend stopped — it will auto-load these mocks with search / filter / sort / pagination.</p>
+</body>
+</html>
